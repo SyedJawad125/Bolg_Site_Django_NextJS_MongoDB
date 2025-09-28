@@ -40,7 +40,7 @@ class CategoryController:
             return Response({'error': str(e)}, 500)
 
     # mydata = Member.objects.filter(firstname__endswith='s').values()
-    def get_task(self, request):
+    def get_category(self, request):
         try:
             # Get all instances
             instances = self.serializer_class.Meta.model.objects.all()
@@ -98,7 +98,7 @@ class CategoryController:
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
-    def update_task(self, request):
+    def update_category(self, request):
         try:
             if "id" in request.data:
                 # finding instance
@@ -129,7 +129,7 @@ class CategoryController:
         except Exception as e:
             return Response({'error': str(e)}, 500)
 
-    def delete_task(self, request):
+    def delete_category(self, request):
         try:
             if "id" in request.query_params:
                 instance = Category.objects.filter(id=request.query_params['id']).first()
