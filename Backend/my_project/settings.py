@@ -139,18 +139,20 @@ WSGI_APPLICATION = 'my_project.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+# from mongoengine import connect
+# connect('jango_blog_db', host='mongodb://localhost:27017/jango_blog_db')
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Django_Task_Management_System',
-        'USER':'postgres',
-        'PASSWORD':'admin',
-        'HOST': 'localhost',           # Database host
-        'PORT': '5432',                # Database port
-        
+        'ENGINE': 'djongo',
+        'NAME': 'jango_blog_db',   # Database name
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': 'mongodb://localhost:27017',
+        }
     }
 }
+
 
 
 
