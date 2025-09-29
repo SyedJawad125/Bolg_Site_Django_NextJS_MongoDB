@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 import os
 
@@ -28,10 +29,6 @@ EMAIL_HOST_PASSWORD = "ctpgxfclwyucweni"
 # Gmail Id is   alishah1250000@gmail.com,   and password is plellvfzhnnzbdkl
 
 
-JWT_ENCODING_ALGO= 'HS256'
-JWT_ENCODING_SECRET_KEY= 'Cyber@123'
-JWT_TOKEN_EXPIRY_DELTA= 300000
-AUTH_USER_MODEL = 'user_auth.User'
 
 # AUTHENTICATION_BACKENDS = ["utils.base_authentication.AuthenticationBackend"]
 AUTHENTICATION_BACKENDS = ['user_auth.authentication.EmailBackend']
@@ -49,6 +46,14 @@ ALLOWED_HOSTS = ['*', 'localhost:3000', 'http://localhost:3000']
 
 ALLOWED_HOSTS = []
 
+AUTH_USER_MODEL = 'user_auth.User'
+
+BACKEND_BASE_URL = os.environ.get('BACKEND_BASE_URL')
+MAX_RETRIES = 3
+RETRY_DELAY = 3
+FRONTEND_BASE_URL = os.environ.get('FRONTEND_BASE_URL')
+PASSWORD_RESET_VALIDITY = 3
+PASSWORD_MIN_LENGTH = 8
 
 # Application definition
 
@@ -66,32 +71,11 @@ INSTALLED_APPS = [
     # 'allauth.socialaccount.providers.google',
     "corsheaders",
     'user_auth',
-    'permissions',
+    # 'permissions',
     'myapp'
 ]
 
 
-# SITE_ID = 1
-
-# AUTHENTICATION_BACKENDS = (
-#     'django.contrib.auth.backends.ModelBackend',
-#     'allauth.account.auth_backends.AuthenticationBackend',
-# )
-
-# LOGIN_REDIRECT_URL = '/'
-# LOGOUT_REDIRECT_URL = '/'
-
-# SOCIALACCOUNT_PROVIDERS = {
-#     'google': {
-#         'SCOPE': [
-#             'profile',
-#             'email',
-#         ],
-#         'AUTH_PARAMS': {
-#             'access_type': 'online',
-#         }
-#     }
-# }
 
 
 MIDDLEWARE = [
@@ -154,8 +138,6 @@ DATABASES = {
 }
 
 
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -199,3 +181,90 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+
+
+
+REST_FRAMEWORK = {
+    # 'DEFAULT_FILTER_BACKENDS': (
+    #     'django_filters.rest_framework.DjangoFilterBackend',
+    # ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated'
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'utils.authenticate.CustomAuthentication',
+    ),
+    'DATETIME_FORMAT': "%Y-%m-%d %H:%M:%S",
+
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = os.environ.get("EMAIL_HOST")
+# EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS")
+# EMAIL_PORT = os.environ.get("EMAIL_PORT")
+# EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
+# EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+
+# CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
+# CELERY_RESULT_BACKEND = 'django-db'
+# CELERY_ACCEPT_CONTENT = ['application/json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
+
+# CELERY_TIMEZONE = 'UTC'
+# CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+
+MAX_LOGIN_ATTEMPTS = 8
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=10),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'UPDATE_LAST_LOGIN': False,
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+
+    'JTI_CLAIM': 'jti',
+
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=23),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=23),
+
+    'AUTH_ACCESS_COOKIE': 'access_token',  # Cookie name. Enables cookies if value is set.
+    'AUTH_REFRESH_COOKIE': 'refresh_token',  # Cookie name. Enables cookies if value is set.
+    'AUTH_CSRF_ACCESS_COOKIE': 'csrf_access_token',  # Cookie name. Enables cookies if value is set.
+    'AUTH_CSRF_REFRESH_COOKIE': 'csrf_refresh_token',  # Cookie name. Enables cookies if value is set.
+    'AUTH_COOKIE_DOMAIN': None,  # A string like "example.com", or None for standard domain cookie.
+    'AUTH_COOKIE_SECURE': True,  # Whether the auth cookies should be secure (https:// only).
+    'AUTH_COOKIE_HTTP_ONLY': True,  # Http only cookie flag.It's not fetch by javascript.
+    'AUTH_COOKIE_PATH': '/',  # The path of the auth cookie.
+    'AUTH_COOKIE_SAMESITE': 'Lax',  # Whether to set the flag restricting cookie leaks on cross-site requests.
+                                    # This can be 'Lax', 'Strict', or None to disable the flag.
+}

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
 import uuid
 
 
@@ -17,6 +18,8 @@ class Category(models.Model):
     meta_description = models.CharField(max_length=320, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='category_created_by', null=True, blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='category_updated_by', null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -38,6 +41,8 @@ class Tag(models.Model):
     color = models.CharField(max_length=7, default='#007bff', help_text="Hex color code")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='tag_created_by', null=True, blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tag_updated_by', null=True, blank=True)
 
     class Meta:
         ordering = ['name']

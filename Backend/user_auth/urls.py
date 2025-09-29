@@ -1,11 +1,20 @@
 from django.urls import path
-from user_auth.views import *
+from .views import (LoginView, RefreshView, LogoutView, ForgetPasswordView, VerifyLinkView, ResetPasswordView,
+                    PermissionView, EmployeeView, EmployeeToggleView, RoleView)
 
 urlpatterns = [
-    path('register', RegisterAPIView.as_view({"post": "create"}), name='register'),
-    path('login', LoginAPIView.as_view({"post": "login"}), name='login'),
-    path('logout', LogoutAPIView.as_view({"post": "logout"}), name='logout'),
-    path('forget-password', ForgetPasswordAPIView.as_view({"post": "post"}), name='forget_password'),
-    path('verify-otp', VerifyOtpAPIView.as_view({"post": "post"}), name='verify_otp'),
-    path('change-password', ChangePasswordAPIView.as_view({"post": "post"}), name='change_password'),
+    path('login/', LoginView.as_view()),
+    path('refresh/', RefreshView.as_view()),
+    path('logout/', LogoutView.as_view()),
+
+    path('forget/password/', ForgetPasswordView.as_view()),
+    path('verify/link/', VerifyLinkView.as_view()),
+    path('reset/password/', ResetPasswordView.as_view()),
+
+    path('', EmployeeView.as_view()),
+    path('toggle/', EmployeeToggleView.as_view()),
+
+    path('permission/', PermissionView.as_view()),
+    path('role/', RoleView.as_view()),
+
 ]

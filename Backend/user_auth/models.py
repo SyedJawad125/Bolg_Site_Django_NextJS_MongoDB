@@ -1,103 +1,113 @@
 import uuid
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from permissions.models import Role
-from utils.reusable_methods import generate_access_token
-from utils.reusable_classes import TimeStamps
-
-    
-from django.core.exceptions import ValidationError
-from django.core.validators import EmailValidator, RegexValidator, MinLengthValidator
-from django.utils import timezone
-import re
-import uuid
-from utils.validators import *
-from django.core.validators import RegexValidator
+from utils.reusable_classes import TimeStamps, TimeUserStamps
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from utils.validators import val_name, val_mobile, val_code_name
+from utils.enums import *
 
 
-class User(TimeStamps, AbstractUser):
-    alphabetic_validator = RegexValidator(
-        regex='^[a-zA-Z]+$',
-        message='This field accepts only alphabetic characters.',
-        code='invalid_input'
+class UserManager(BaseUserManager):
+    def create_user(self, username, password=None):
+        if not username:
+            raise ValueError('User must have a username.')
+        user = self.model(
+            username=username,
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, password):
+        user = self.create_user(
+            username=username,
+            password=password
+        )
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
+
+
+def get_profile_image_path(self, filename):
+    return f'profile_images/{self.pk}/{str(uuid.uuid4())}.png'
+
+
+class User(AbstractBaseUser, TimeStamps):
+    type_choices = (
+        (CUSTOMER, CUSTOMER),
+        (EMPLOYEE, EMPLOYEE),
     )
-    numeric_validator = RegexValidator(
-        regex='^[0-9]+$',
-        message='Phone number must contain only digits.',
-        code='invalid_phone_number'
+    username = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=200, validators=[val_name])
+    email = models.EmailField(max_length=100, null=True, blank=True)
+    mobile = models.CharField(max_length=35, validators=[val_mobile], null=True, blank=True)
+    profile_image = models.ImageField(max_length=255, upload_to=get_profile_image_path, null=True, blank=True)
+    login_attempts = models.IntegerField(default=0)
+    is_blocked = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
+    password_link_token = models.CharField(max_length=255, null=True, blank=True)
+    password_link_token_created_at = models.DateTimeField(null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    last_password_changed = models.DateTimeField(null=True, blank=True)
+    role = models.ForeignKey('Role', related_name='role_users', blank=True, null=True, on_delete=models.CASCADE)
+    type = models.CharField(max_length=10, choices=type_choices, default=CUSTOMER)
+    activation_link_token = models.CharField(max_length=255, null=True, blank=True)
+    activation_link_token_created_at = models.DateTimeField(null=True, blank=True)
+    deactivated = models.BooleanField(default=False)
+    password = models.CharField(max_length=128, null=True, blank=True)
+    objects = UserManager()
+    USERNAME_FIELD = 'username'
+
+    def save(self, *args, **kwargs):
+        self.email = self.username
+        self.name = self.name.title()
+        return super().save(*args, **kwargs)
+
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
+
+
+class Role(TimeUserStamps):
+    name = models.CharField(max_length=100, validators=[val_name])
+    code_name = models.CharField(max_length=50, unique=True, validators=[val_code_name])
+    permissions = models.ManyToManyField('Permission', related_name='+')
+    description = models.CharField(max_length=250)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.name = self.name.title()
+        return super().save(*args, **kwargs)
+
+
+class Permission(models.Model):
+    name = models.CharField(max_length=100, validators=[val_name])
+    code_name = models.CharField(max_length=100, unique=True, validators=[val_code_name])
+    module_name = models.CharField(max_length=100)
+    module_label = models.CharField(max_length=100, null=True, blank=True)
+    description = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.name
+
+
+class UserToken(TimeStamps):
+    user = models.ForeignKey('User', on_delete=models.PROTECT, related_name="user_token")
+    device_token = models.TextField(max_length=512, null=True, blank=True)
+
+
+class Employee(TimeUserStamps):
+    status_choices = (
+        (INVITED, INVITED),
+        (ACTIVE, ACTIVE),
+        (DEACTIVATED, DEACTIVATED),
     )
-    alphanumeric_or_alpha_validator = RegexValidator(
-        regex=r'^(?!^\d+$)[a-zA-Z0-9]+$',
-        message='Position must contain only alphabetic or alphanumeric characters, but not only numbers.'
-    )
-    
-    guid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    first_name = models.CharField(max_length=100, blank=True, null=True, validators=[alphabetic_validator])
-    last_name = models.CharField(max_length=100, blank=True, null=True, validators=[alphabetic_validator])
-    username = models.CharField(max_length=100,unique=True, validators=[MinLengthValidator(3)])
-    email = models.EmailField(unique=True, validators=[EmailValidator()])
-    phone = models.CharField(max_length=50, blank=True, null=True, validators=[RegexValidator
-                               (regex=r'^\+?1?\d{9,15}$', message="Phone number must be between 9 to 15 digits.")])
-    password = models.CharField(max_length=100, validators=[MinLengthValidator(8)])
-    otp = models.IntegerField(null=True, blank=True)
-    last_login = models.DateTimeField(null=True, blank=True)
-    otp_generated_at = models.DateTimeField(null=True, blank=True)
-    failed_login_attempts = models.IntegerField(default=0)
-    last_failed_time = models.DateTimeField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-    is_locked = models.BooleanField(default=False)
-    current_token = models.CharField(max_length=500, blank=True, null=True)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='user_role', null=True, blank=True)
-
-    REQUIRED_FIELDS = ["email", "password"]
-
-    def clean(self):
-        # Trim leading/trailing spaces in string fields
-        self.first_name = self.first_name.strip() if self.first_name else self.first_name
-        self.last_name = self.last_name.strip() if self.last_name else self.last_name
-        self.username = self.username.strip() if self.username else self.username
-        self.email = self.email.strip().lower() if self.email else self.email
-
-        # Email Validation
-        if not re.match(r'^[^@]+@[^@]+\.[^@]+$', self.email):
-            raise ValidationError({'email': 'Enter a valid email address.'})
-
-        # Phone Validation (example: allowing country codes and digits)
-        if self.phone and not re.match(r'^\+?1?\d{9,15}$', self.phone):
-            raise ValidationError({'phone': 'Enter a valid phone number.'})
-
-        # OTP Validation
-        if self.otp and not (100000 <= self.otp <= 999999):
-            raise ValidationError({'otp': 'OTP must be a 6-digit number.'})
-
-        # Last login and times should be in the past
-        if self.last_login and self.last_login > timezone.now():
-            raise ValidationError({'last_login': 'Last login cannot be in the future.'})
-
-        if self.otp_generated_at and self.otp_generated_at > timezone.now():
-            raise ValidationError({'otp_generated_at': 'OTP generation time cannot be in the future.'})
-
-        if self.last_failed_time and self.last_failed_time > timezone.now():
-            raise ValidationError({'last_failed_time': 'Last failed login time cannot be in the future.'})
-
-        super().clean()
-
-
-
-    def get_access_token(self):
-        return generate_access_token(self)
-
-    def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
-
-
-class Token(TimeStamps):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="token")
-    
-    token = models.TextField(max_length=500, unique=True, null=False, blank=False)
-
-
-
-
-
-
+    user = models.OneToOneField('User', on_delete=models.SET_NULL, related_name="user_employee", null=True, blank=True)
+    status = models.CharField(max_length=20, choices=status_choices, default=INVITED)
