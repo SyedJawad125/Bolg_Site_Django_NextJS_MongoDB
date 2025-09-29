@@ -4,7 +4,7 @@ import random
 import ast                                                         
 from cryptography.fernet import Fernet
 from rest_framework.utils.serializer_helpers import ReturnList
-from my_project.settings import JWT_ENCODING_SECRET_KEY, JWT_TOKEN_EXPIRY_DELTA
+# from my_project.settings import JWT_ENCODING_SECRET_KEY, JWT_TOKEN_EXPIRY_DELTA
 from rest_framework.pagination import LimitOffsetPagination
 
 
@@ -22,19 +22,19 @@ def decrypt_token(encrypted_token):
     return fernet.decrypt(encrypted_token.encode()).decode()
 
 
-def generate_access_token(user):
-    # nbf: Defines the time before which the JWT MUST NOT be accepted for processing
-    access_token_payload = {
-        'username': user.username,
-        'iat': datetime.datetime.utcnow(),
-    }
-    exp_claim = {
-        "exp": access_token_payload.get("iat") + datetime.timedelta(seconds=int(JWT_TOKEN_EXPIRY_DELTA))}
-    # Add expiry claim to token_payload
-    token_payload = {**access_token_payload, **exp_claim}
-    encoded_token = jwt.encode(token_payload, JWT_ENCODING_SECRET_KEY, algorithm='HS256')
-    jwt_token = encrypt_token(encoded_token)
-    return jwt_token
+# def generate_access_token(user):
+#     # nbf: Defines the time before which the JWT MUST NOT be accepted for processing
+#     access_token_payload = {
+#         'username': user.username,
+#         'iat': datetime.datetime.utcnow(),
+#     }
+#     exp_claim = {
+#         "exp": access_token_payload.get("iat") + datetime.timedelta(seconds=int(JWT_TOKEN_EXPIRY_DELTA))}
+#     # Add expiry claim to token_payload
+#     token_payload = {**access_token_payload, **exp_claim}
+#     encoded_token = jwt.encode(token_payload, JWT_ENCODING_SECRET_KEY, algorithm='HS256')
+#     jwt_token = encrypt_token(encoded_token)
+#     return jwt_token
 
 
 def get_first_error_message(serialized_errors, default_message=""):

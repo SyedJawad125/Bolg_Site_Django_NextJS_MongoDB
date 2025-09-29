@@ -7,25 +7,30 @@ from utils.enums import *
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, username, password=None):
+    def create_user(self, username, email=None, password=None):
         if not username:
             raise ValueError('User must have a username.')
+        if email:
+            email = self.normalize_email(email)
         user = self.model(
             username=username,
+            email=email,
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, password):
+    def create_superuser(self, username, email=None, password=None):
         user = self.create_user(
             username=username,
+            email=email,
             password=password
         )
         user.is_staff = True
         user.is_superuser = True
         user.save(using=self._db)
         return user
+
 
 
 def get_profile_image_path(self, filename):

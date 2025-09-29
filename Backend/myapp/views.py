@@ -2,7 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .controllers import CategoryController, TagController
-from permissions.decorator import permission_required
+from utils.decorator import permission_required
 
 category_controller = CategoryController()
 tag_controller = TagController()

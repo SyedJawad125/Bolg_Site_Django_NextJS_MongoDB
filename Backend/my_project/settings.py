@@ -39,6 +39,8 @@ AUTHENTICATION_BACKENDS = ['user_auth.authentication.EmailBackend']
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-tbxp050r_36wcpo4re87tc)_-^k9qy(jpo6j_=5e)5mh2gu6zz'
 
+JWT_ENCODING_SECRET_KEY = "your-secret-key"   # change this to a secure random string
+JWT_TOKEN_EXPIRY_DELTA = 60 * 60  # in seconds (e.g. 1 hour)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -72,6 +74,7 @@ INSTALLED_APPS = [
     "corsheaders",
     'user_auth',
     # 'permissions',
+    'notification',
     'myapp'
 ]
 
