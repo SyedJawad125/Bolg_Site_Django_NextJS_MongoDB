@@ -17,14 +17,14 @@ from utils.helper import validate_password
 
 
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=100, required=True)
+    email = serializers.CharField(max_length=100, required=True)
     password = serializers.CharField(max_length=100, required=True)
 
     def validate(self, attrs):
-        username = attrs.get('username', None)
+        email = attrs.get('email', None)
         password = attrs.get("password", None)
-        if username and password:
-            user_obj = User.objects.filter(username=username, deleted=False).first()
+        if email and password:
+            user_obj = User.objects.filter(email=email, deleted=False).first()
             # user = authenticate(username=username, password=password, deleted=False)
             # if not user:
             if not check_password(password, user_obj.password):

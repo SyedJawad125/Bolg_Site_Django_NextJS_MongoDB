@@ -234,8 +234,7 @@ class EmployeeView(BaseView):
         try:
             if request.query_params.get('id'):
                 instance = self.serializer_class.Meta.model.objects.filter(deleted=False,
-                                                                           id=request.query_params.get('id',
-                                                                                                       None)).first()
+                                            id=request.query_params.get('id', None)).first()
                 if instance:
                     with transaction.atomic():
                         instance.deleted = True
@@ -272,8 +271,7 @@ class EmployeeToggleView(APIView):
         try:
             if request.query_params.get('id'):
                 instance = self.serializer_class.Meta.model.objects.filter(deleted=False,
-                                                                           id=request.query_params.get('id',
-                                                                                                       None)).first()
+                                        id=request.query_params.get('id', None)).first()
                 if instance:
                     with transaction.atomic():
                         template = USER_RE_ACTIVATED_EMAIL_TEMP

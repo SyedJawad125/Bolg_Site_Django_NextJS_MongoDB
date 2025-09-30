@@ -46,8 +46,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*', 'localhost:3000', 'http://localhost:3000']
 
-ALLOWED_HOSTS = []
-
 AUTH_USER_MODEL = 'user_auth.User'
 
 BACKEND_BASE_URL = os.environ.get('BACKEND_BASE_URL')
@@ -131,12 +129,13 @@ WSGI_APPLICATION = 'my_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'jango_blog_db',   # Database name
-        'ENFORCE_SCHEMA': False,
-        'CLIENT': {
-            'host': 'mongodb://localhost:27017',
-        }
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'Django_Blog',
+        'USER':'postgres',
+        'PASSWORD':'admin',
+        'HOST': 'localhost',           # Database host
+        'PORT': '5432',                # Database port
+        
     }
 }
 

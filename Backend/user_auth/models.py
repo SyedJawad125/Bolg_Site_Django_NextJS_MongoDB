@@ -62,7 +62,7 @@ class User(AbstractBaseUser, TimeStamps):
     activation_link_token = models.CharField(max_length=255, null=True, blank=True)
     activation_link_token_created_at = models.DateTimeField(null=True, blank=True)
     deactivated = models.BooleanField(default=False)
-    password = models.CharField(max_length=128, null=True, blank=True)
+    # password = models.CharField(max_length=128, null=True, blank=True)
     objects = UserManager()
     USERNAME_FIELD = 'username'
 
