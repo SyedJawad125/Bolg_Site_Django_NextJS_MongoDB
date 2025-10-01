@@ -123,7 +123,7 @@ class ForgetPasswordView(APIView):
 
     @staticmethod
     def forget_email(user):
-        token_string = f"{user.id}_{user.username}"
+        token_string = f"{user.id}_{user.email}"
         token = generate_token(token_string)
         user.password_link_token = token
         user.password_link_token_created_at = timezone.now()
