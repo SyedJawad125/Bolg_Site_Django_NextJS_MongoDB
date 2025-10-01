@@ -69,7 +69,7 @@ class User(AbstractBaseUser, TimeStamps):
     USERNAME_FIELD = 'username'
 
     def save(self, *args, **kwargs):
-        self.email = self.username
+        self.email = self.email
         self.name = self.name.title()
         return super().save(*args, **kwargs)
 

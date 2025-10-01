@@ -47,7 +47,7 @@ class LoginSerializer(serializers.Serializer):
                 user_obj.login_attempts = 0
                 user_obj.save()
         else:
-            raise serializers.ValidationError(USERNAME_OR_PASSWORD_MISSING)
+            raise serializers.ValidationError(EMAIL_OR_PASSWORD_MISSING)
 
         attrs['user'] = user_obj
         return attrs
@@ -57,7 +57,7 @@ class LoginUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'name', 'username', 'email', 'mobile', 'profile_image', 'role', 'type')
+        fields = ('id', 'name', 'username', 'email', 'mobile', 'is_superuser', 'profile_image', 'role', 'type')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -66,7 +66,17 @@ class LoginUserSerializer(serializers.ModelSerializer):
         data['access_token'] = tokens['access']
         expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
         data['age_in_seconds'] = expiry.total_seconds() * 1000
-        data['permissions'] = combine_role_permissions(instance.role)
+        
+        # Handle permissions based on user type
+        if instance.is_superuser:
+            # Return all permission codes for superuser
+            all_permissions = Permission.objects.all()
+            data['permissions'] = [perm.code_name for perm in all_permissions]
+        elif instance.role:
+            data['permissions'] = combine_role_permissions(instance.role)
+        else:
+            data['permissions'] = []
+            
         return data
 
 
@@ -125,19 +135,19 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, attrs):
-        email = attrs.get('username', attrs.get('email'))
+        email = attrs.get('email', attrs.get('email'))
 
         if self.instance:
             if User.objects.filter(email=email, deleted=False).exclude(id=self.instance.id).exists():
-                raise serializers.ValidationError('User with this email already exists')
+                raise serializers.ValidationError('Email with this email already exists')
         else:
             if User.objects.filter(email=email, deleted=False).exists():
-                raise serializers.ValidationError('User with this email already exists')
+                raise serializers.ValidationError('Email with this email already exists')
         return attrs
 
     def create(self, validated_data):
         instance = User.objects.create(**validated_data)
-        token_string = f"{instance.id}_{instance.username}"
+        token_string = f"{instance.id}_{instance.email}"
         token = generate_token(token_string)
         instance.activation_link_token = token
         instance.activation_link_token_created_at = timezone.now()

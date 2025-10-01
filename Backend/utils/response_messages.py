@@ -32,6 +32,7 @@ AMOUNT_ERROR = "PLease Enter Amount"
 DATE_ERROR = "Transaction Date cannot be in the Future"
 ACCOUNT_BLOCKED = 'Your account has been blocked. Please contact support'
 USERNAME_OR_PASSWORD_MISSING = 'Username or Password is missing'
+EMAIL_OR_PASSWORD_MISSING = 'Email or Password is missing'
 INVALID_TOKEN = "Invalid Token"
 INVALID_CREDENTIALS = 'Invalid credentials'
 REFRESH_TOKEN_NOT_FOUND = 'Refresh token not found'
