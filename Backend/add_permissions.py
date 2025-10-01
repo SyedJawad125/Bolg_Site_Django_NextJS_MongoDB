@@ -20,6 +20,16 @@ permissions = [
     Permission(name='Update Tag', code_name='update_tag', module_name='Tag', description='User can update tag'),
     Permission(name='Delete Tag', code_name='delete_tag', module_name='Tag', description='User can delete tag'),
    
+    Permission(name='Create Roles', code_name='create_roles', module_name='Roles', description='User can create roles'),
+    Permission(name='Read Roles', code_name='read_roles', module_name='Roles', description='User can read roles'),
+    Permission(name='Update Roles', code_name='update_roles', module_name='Roles', description='User can update roles'),
+    Permission(name='Delete Roles', code_name='delete_roles', module_name='Roles', description='User can delete roles'),
+   
+    Permission(name='Create Permission', code_name='create_permission', module_name='Permission', description='User can create permission'),
+    Permission(name='Read Permission', code_name='read_permission', module_name='Permission', description='User can read permission'),
+    Permission(name='Update Permission', code_name='update_permission', module_name='Permission', description='User can update permission'),
+    Permission(name='Delete Permission', code_name='delete_permission', module_name='Permission', description='User can delete permission'),
+   
 ]
 
 

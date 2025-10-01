@@ -1,6 +1,6 @@
 import django_filters as filters
 from django.db.models import Q
-from .models import Employee, Role
+from .models import Employee, Role, Permission
 
 
 class EmployeeFilter(filters.FilterSet):
@@ -35,4 +35,24 @@ class RoleFilter(filters.FilterSet):
         return queryset.filter(
             Q(name__icontains=value) |
             Q(code_name__icontains=value)
+        )
+    
+
+
+class PermissionFilter(filters.FilterSet):
+    search = filters.CharFilter(method='filter_search')
+    date_to = filters.DateFilter(field_name='created_at', lookup_expr='lte')
+    date_from = filters.DateFilter(field_name='created_at', lookup_expr='gte')
+
+    class Meta:
+        model = Permission
+        fields = ['name', 'code_name', 'module_name', 'module_label']
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(name__icontains=value) |
+            Q(code_name__icontains=value) |
+            Q(module_name__icontains=value) |
+            Q(module_label__icontains=value) |
+            Q(description__icontains=value)
         )

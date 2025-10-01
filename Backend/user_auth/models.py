@@ -94,7 +94,7 @@ class Role(TimeUserStamps):
         return super().save(*args, **kwargs)
 
 
-class Permission(models.Model):
+class Permission(TimeStamps):  # Changed from models.Model
     name = models.CharField(max_length=100, validators=[val_name])
     code_name = models.CharField(max_length=100, unique=True, validators=[val_code_name])
     module_name = models.CharField(max_length=100)
@@ -105,7 +105,7 @@ class Permission(models.Model):
         return self.name
 
 
-class UserToken(TimeStamps):
+class Token(TimeStamps):
     user = models.ForeignKey('User', on_delete=models.PROTECT, related_name="user_token")
     device_token = models.TextField(max_length=512, null=True, blank=True)
 

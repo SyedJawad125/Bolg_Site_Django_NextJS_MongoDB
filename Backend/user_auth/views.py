@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .filters import RoleFilter
+
+from .filters import PermissionFilter, RoleFilter
 from user_auth.filters import EmployeeFilter
 from utils.reusable_functions import (create_response, get_first_error, get_tokens_for_user)
 from rest_framework import status
@@ -11,7 +12,7 @@ from .user_serializer import (LoginSerializer, LoginUserSerializer, EmptySeriali
                           UserSerializer, RoleSerializer, RoleListingSerializer)
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from my_project.settings import (SIMPLE_JWT, FRONTEND_BASE_URL, PASSWORD_RESET_VALIDITY)
-from .models import UserToken, User
+from .models import Token, User
 from django.utils import timezone
 from utils.helpers import generate_token
 from notification.tasks import send_email
@@ -311,22 +312,38 @@ class EmployeeToggleView(APIView):
 class PermissionView(BaseView):
     permission_classes = (IsAuthenticated,)
     serializer_class = PermissionSerializer
+    filterset_class = PermissionFilter
 
-    @permission_required([CREATE_ROLE])
+    # @permission_required([CREATE_ROLE])
+    # def get(self, request):
+    #     try:
+    #         permissions = self.serializer_class.Meta.model.objects.all()
+    #         serialized_data = PermissionSerializer(permissions, many=True).data
+    #         grouped_data = defaultdict(list)
+    #         for item in serialized_data:
+    #             module_label = item.get("module_label", "Uncategorized")
+    #             grouped_data[module_label].append(item)
+    #         return Response(create_response(SUCCESSFUL, grouped_data, permissions.count()), status=status.HTTP_200_OK)
+
+    #     except Exception as e:
+    #         print(str(e))
+    #         return Response(create_response(str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @permission_required(['create_permission'])
+    def post(self, request):
+        return super().post_(request)
+
+    @permission_required(['read_permission'])
     def get(self, request):
-        try:
-            permissions = self.serializer_class.Meta.model.objects.all()
-            serialized_data = PermissionSerializer(permissions, many=True).data
-            grouped_data = defaultdict(list)
-            for item in serialized_data:
-                module_label = item.get("module_label", "Uncategorized")
-                grouped_data[module_label].append(item)
-            return Response(create_response(SUCCESSFUL, grouped_data, permissions.count()), status=status.HTTP_200_OK)
+        return super().get_(request)
 
-        except Exception as e:
-            print(str(e))
-            return Response(create_response(str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    @permission_required(['update_permission'])
+    def patch(self, request):
+        return super().patch_(request)
 
+    @permission_required(['delete_permission'])
+    def delete(self, request):
+        return super().delete_(request)
 
 class RoleView(BaseView):
     permission_classes = (IsAuthenticated,)
@@ -334,18 +351,18 @@ class RoleView(BaseView):
     filterset_class = RoleFilter
     list_serializer = RoleListingSerializer
 
-    @permission_required([CREATE_ROLE])
+    @permission_required(['create_role'])
     def post(self, request):
         return super().post_(request)
 
-    @permission_required([READ_ROLE])
+    @permission_required(['read_role'])
     def get(self, request):
         return super().get_(request)
 
-    @permission_required([UPDATE_ROLE])
+    @permission_required(['update_role'])
     def patch(self, request):
         return super().patch_(request)
 
-    @permission_required([DELETE_ROLE])
+    @permission_required(['delete_role'])
     def delete(self, request):
         return super().delete_(request)
