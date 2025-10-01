@@ -38,6 +38,7 @@ def get_profile_image_path(self, filename):
 
 
 class User(AbstractBaseUser, TimeStamps):
+    id = models.BigAutoField(primary_key=True)   # 👈 add this line
     type_choices = (
         (CUSTOMER, CUSTOMER),
         (EMPLOYEE, EMPLOYEE),
