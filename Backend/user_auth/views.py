@@ -91,7 +91,7 @@ class LogoutView(APIView):
             if serialized_data.is_valid():
                 request.user.last_login = timezone.now()
                 request.user.save()
-                UserToken.objects.filter(user=request.user).update(device_token=None)
+                Token.objects.filter(user=request.user).update(device_token=None)
                 return Response(create_response(SUCCESSFUL), status=status.HTTP_200_OK)
             else:
                 return Response(create_response(get_first_error(serialized_data.errors)),
