@@ -22,7 +22,7 @@ class CategoryController:
     def create(self, request):
         try:
             request.POST._mutable = True
-            request.data["created_by"] = request.user.guid
+            request.data["created_by"] = request.user.id
             request.POST._mutable = False
 
             # if request.user.role in ['admin', 'manager'] or request.user.is_superuser:  # roles
@@ -106,7 +106,7 @@ class CategoryController:
 
                 if instance:
                     request.POST._mutable = True
-                    request.data["updated_by"] = request.user.guid
+                    request.data["updated_by"] = request.user.id
                     request.POST._mutable = False
 
                     # updating the instance/record
@@ -153,7 +153,7 @@ class TagController:
     def create(self, request):
         try:
             request.POST._mutable = True
-            request.data["created_by"] = request.user.guid
+            request.data["created_by"] = request.user.id
             request.POST._mutable = False
 
             # if request.user.role in ['admin', 'manager'] or request.user.is_superuser:  # roles
@@ -237,7 +237,7 @@ class TagController:
 
                 if instance:
                     request.POST._mutable = True
-                    request.data["updated_by"] = request.user.guid
+                    request.data["updated_by"] = request.user.id
                     request.POST._mutable = False
 
                     # updating the instance/record

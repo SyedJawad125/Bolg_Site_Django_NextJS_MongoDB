@@ -10,7 +10,9 @@ tag_controller = TagController()
 
 class CategoryViews(ModelViewSet):
     """Luxury Task ViewSet"""
-    authentication_classes = [JWTAuthentication]
+    # authentication_classes = [JWTAuthentication]
+    permission_classes = (IsAuthenticated,)
+
     # permission_classes = [IsAuthenticated]
 
     @permission_required(['create_category'])
