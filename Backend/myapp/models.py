@@ -41,6 +41,7 @@ class Tag(models.Model):
     color = models.CharField(max_length=7, default='#007bff', help_text="Hex color code")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='tag_created_by', null=True, blank=True)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tag_updated_by', null=True, blank=True)
 
@@ -56,81 +57,83 @@ class Tag(models.Model):
         return self.name
 
 
-# class BlogPost(models.Model):
-#     """Main blog post model with rich content"""
+class BlogPost(models.Model):
+    """Main blog post model with rich content"""
     
-#     STATUS_CHOICES = [
-#         ('draft', 'Draft'),
-#         ('published', 'Published'),
-#         ('archived', 'Archived'),
-#         ('scheduled', 'Scheduled'),
-#     ]
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+        ('archived', 'Archived'),
+        ('scheduled', 'Scheduled'),
+    ]
 
-#     VISIBILITY_CHOICES = [
-#         ('public', 'Public'),
-#         ('private', 'Private'),
-#         ('password', 'Password Protected'),
-#         ('members', 'Members Only'),
-#     ]
+    VISIBILITY_CHOICES = [
+        ('public', 'Public'),
+        ('private', 'Private'),
+        ('password', 'Password Protected'),
+        ('members', 'Members Only'),
+    ]
 
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     title = models.CharField(max_length=200)
-#     slug = models.SlugField(max_length=250, unique=True, blank=True)
-#     subtitle = models.CharField(max_length=300, blank=True)
-#     excerpt = models.TextField(max_length=500, blank=True, help_text="Short description for previews")
-#     content = RichTextField()
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=250, unique=True, blank=True)
+    subtitle = models.CharField(max_length=300, blank=True)
+    excerpt = models.TextField(max_length=500, blank=True, help_text="Short description for previews")
+    content = models.TextField()
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='blogpost_created_by', null=True, blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blogpost_updated_by', null=True, blank=True)
     
-#     # Relationships
-#     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
-#     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-#     tags = models.ManyToManyField(Tag, blank=True)
+    # Relationships
+    # author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blog_posts')
+    author = models.CharField(max_length=100, unique=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True)
     
-#     # Media
-#     featured_image = models.ImageField(upload_to='blog/featured/', blank=True, null=True)
-#     featured_image_alt = models.CharField(max_length=200, blank=True)
+    # Media
+    featured_image = models.ImageField(upload_to='blog/featured/', blank=True, null=True)
+    featured_image_alt = models.CharField(max_length=200, blank=True)
     
-#     # Status and Visibility
-#     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
-#     visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='public')
-#     password = models.CharField(max_length=100, blank=True, help_text="Required if visibility is password protected")
+    # Status and Visibility
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='public')
+    password = models.CharField(max_length=100, blank=True, help_text="Required if visibility is password protected")
     
-#     # SEO
-#     meta_title = models.CharField(max_length=160, blank=True)
-#     meta_description = models.CharField(max_length=320, blank=True)
-#     canonical_url = models.URLField(blank=True, null=True)
+    # SEO
+    meta_title = models.CharField(max_length=160, blank=True)
+    meta_description = models.CharField(max_length=320, blank=True)
+    canonical_url = models.URLField(blank=True, null=True)
     
-#     # Engagement
-#     view_count = models.PositiveIntegerField(default=0)
-#     reading_time = models.PositiveIntegerField(default=0, help_text="Estimated reading time in minutes")
+    # Engagement
+    view_count = models.PositiveIntegerField(default=0)
+    reading_time = models.PositiveIntegerField(default=0, help_text="Estimated reading time in minutes")
     
-#     # Scheduling
-#     published_at = models.DateTimeField(blank=True, null=True)
-#     scheduled_at = models.DateTimeField(blank=True, null=True)
+    # Scheduling
+    published_at = models.DateTimeField(blank=True, null=True)
+    scheduled_at = models.DateTimeField(blank=True, null=True)
     
-#     # Timestamps
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
-#     # Features
-#     is_featured = models.BooleanField(default=False)
-#     allow_comments = models.BooleanField(default=True)
-#     is_premium = models.BooleanField(default=False)
+    # Features
+    is_featured = models.BooleanField(default=False)
+    allow_comments = models.BooleanField(default=True)
+    is_premium = models.BooleanField(default=False)
 
-#     class Meta:
-#         ordering = ['-created_at']
-#         indexes = [
-#             models.Index(fields=['status', 'published_at']),
-#             models.Index(fields=['category', 'status']),
-#             models.Index(fields=['author', 'status']),
-#         ]
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'published_at']),
+            models.Index(fields=['category', 'status']),
+            models.Index(fields=['author', 'status']),
+        ]
 
-#     def save(self, *args, **kwargs):
-#         if not self.slug:
-#             self.slug = slugify(self.title)
-#         super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
-#     def __str__(self):
-#         return self.title
+    def __str__(self):
+        return self.title
 
 
 # class Comment(models.Model):

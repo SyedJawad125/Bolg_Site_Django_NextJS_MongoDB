@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CategoryViews, TagViews
+from .views import BlogPostViews, CategoryViews, TagViews
 
 urlpatterns = [
     # Task URLs
@@ -16,5 +16,13 @@ urlpatterns = [
             "post": "post_tag",
             "patch": "update_tag",
             "delete": "delete_tag"}),name="tag"
+    ),
+    # BlogPost URLs
+
+    path('blogpost', BlogPostViews.as_view({
+            "get": "get_blogpost",
+            "post": "post_blogpost",
+            "patch": "update_blogpost",
+            "delete": "delete_blogpost"}),name="blogpost"
     ),
 ]

@@ -19,6 +19,11 @@ permissions = [
     Permission(name='Read Tag', code_name='read_tag', module_name='Tag', description='User can read tag'),
     Permission(name='Update Tag', code_name='update_tag', module_name='Tag', description='User can update tag'),
     Permission(name='Delete Tag', code_name='delete_tag', module_name='Tag', description='User can delete tag'),
+
+    Permission(name='Create BlogPost', code_name='create_blogpost', module_name='BlogPost', description='User can create BlogPost'),
+    Permission(name='Read BlogPost', code_name='read_blogpost', module_name='BlogPost', description='User can read BlogPost'),
+    Permission(name='Update BlogPost', code_name='update_blogpost', module_name='BlogPost', description='User can update BlogPost'),
+    Permission(name='Delete BlogPost', code_name='delete_blogpost', module_name='BlogPost', description='User can delete BlogPost'),
    
     Permission(name='Create Roles', code_name='create_roles', module_name='Roles', description='User can create roles'),
     Permission(name='Read Roles', code_name='read_roles', module_name='Roles', description='User can read roles'),
