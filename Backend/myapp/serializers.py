@@ -44,4 +44,7 @@ class BlogPostSerializer(ModelSerializer):
         data = super().to_representation(instance)
         data['created_by'] = UserListSerializer(instance.created_by).data if instance.created_by else None
         data['updated_by'] = UserListSerializer(instance.updated_by).data if instance.updated_by else None
+        data['category_name'] = instance.category.name if instance.category else None
+        data['tags_name'] = instance.tags.name if instance.tags else None
+
         return data
