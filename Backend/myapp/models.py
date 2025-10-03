@@ -88,14 +88,10 @@ class BlogPost(models.Model):
     excerpt = models.TextField(max_length=500, blank=True, help_text="Short description for previews")
     content = models.TextField()
 
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name='blogpost_created_by', null=True, blank=True
-    )
-    updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name='blogpost_updated_by', null=True, blank=True
-    )
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                   related_name='blogpost_created_by', null=True, blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                   related_name='blogpost_updated_by', null=True, blank=True)
 
     # Relationships
     author = models.CharField(max_length=100, blank=True)  # removed unique=True, because you’ll have many posts per author
