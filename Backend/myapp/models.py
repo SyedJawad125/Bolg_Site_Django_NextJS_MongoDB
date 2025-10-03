@@ -34,6 +34,8 @@ class Category(models.Model):
         return self.name
 
 
+
+
 class Tag(models.Model):
     """Tags for blog posts"""
     name = models.CharField(max_length=50, unique=True)
@@ -42,8 +44,14 @@ class Tag(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='tag_created_by', null=True, blank=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tag_updated_by', null=True, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='tag_created_by', null=True, blank=True
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='tag_updated_by', null=True, blank=True
+    )
 
     class Meta:
         ordering = ['name']
@@ -59,7 +67,7 @@ class Tag(models.Model):
 
 class BlogPost(models.Model):
     """Main blog post model with rich content"""
-    
+
     STATUS_CHOICES = [
         ('draft', 'Draft'),
         ('published', 'Published'),
@@ -79,41 +87,47 @@ class BlogPost(models.Model):
     subtitle = models.CharField(max_length=300, blank=True)
     excerpt = models.TextField(max_length=500, blank=True, help_text="Short description for previews")
     content = models.TextField()
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='blogpost_created_by', null=True, blank=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blogpost_updated_by', null=True, blank=True)
-    
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='blogpost_created_by', null=True, blank=True
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='blogpost_updated_by', null=True, blank=True
+    )
+
     # Relationships
-    # author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blog_posts')
-    author = models.CharField(max_length=100, unique=True, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    author = models.CharField(max_length=100, blank=True)  # removed unique=True, because you’ll have many posts per author
+    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
-    
+
     # Media
     featured_image = models.ImageField(upload_to='blog/featured/', blank=True, null=True)
     featured_image_alt = models.CharField(max_length=200, blank=True)
-    
+
     # Status and Visibility
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='public')
     password = models.CharField(max_length=100, blank=True, help_text="Required if visibility is password protected")
-    
+
     # SEO
     meta_title = models.CharField(max_length=160, blank=True)
     meta_description = models.CharField(max_length=320, blank=True)
     canonical_url = models.URLField(blank=True, null=True)
-    
+
     # Engagement
     view_count = models.PositiveIntegerField(default=0)
     reading_time = models.PositiveIntegerField(default=0, help_text="Estimated reading time in minutes")
-    
+
     # Scheduling
     published_at = models.DateTimeField(blank=True, null=True)
     scheduled_at = models.DateTimeField(blank=True, null=True)
-    
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     # Features
     is_featured = models.BooleanField(default=False)
     allow_comments = models.BooleanField(default=True)
@@ -134,6 +148,7 @@ class BlogPost(models.Model):
 
     def __str__(self):
         return self.title
+
 
 
 # class Comment(models.Model):
