@@ -53,30 +53,64 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
-class LoginUserSerializer(serializers.ModelSerializer):
+# class LoginUserSerializer(serializers.ModelSerializer):
 
+#     class Meta:
+#         model = User
+#         fields = ('id', 'name', 'username', 'email', 'mobile', 'is_superuser', 'profile_image', 'role', 'type')
+
+#     def to_representation(self, instance):
+#         data = super().to_representation(instance)
+#         tokens = self.context.get('tokens')
+#         data['refresh_token'] = tokens['refresh']
+#         data['access_token'] = tokens['access']
+#         expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
+#         data['age_in_seconds'] = expiry.total_seconds() * 1000
+        
+#         # Handle permissions based on user type
+#         if instance.is_superuser:
+#             # Return all permission codes for superuser
+#             all_permissions = Permission.objects.all()
+#             data['permissions'] = [perm.code_name for perm in all_permissions]
+#         elif instance.role:
+#             data['permissions'] = combine_role_permissions(instance.role)
+#         else:
+#             data['permissions'] = []
+            
+#         return data
+
+
+class LoginUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'name', 'username', 'email', 'mobile', 'is_superuser', 'profile_image', 'role', 'type')
+        fields = (
+            'id', 'name', 'username', 'email', 'mobile',
+            'is_superuser', 'profile_image', 'role', 'type'
+        )
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+
+        # ✅ 1. Add JWT tokens from context
         tokens = self.context.get('tokens')
-        data['refresh_token'] = tokens['refresh']
-        data['access_token'] = tokens['access']
+        if tokens:
+            data['refresh_token'] = tokens.get('refresh')
+            data['access_token'] = tokens.get('access')
+
+        # ✅ 2. Include token expiry in milliseconds
         expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
         data['age_in_seconds'] = expiry.total_seconds() * 1000
-        
-        # Handle permissions based on user type
+
+        # ✅ 3. Handle permissions
         if instance.is_superuser:
             # Return all permission codes for superuser
             all_permissions = Permission.objects.all()
             data['permissions'] = [perm.code_name for perm in all_permissions]
-        elif instance.role:
+        elif getattr(instance, 'role', None):
             data['permissions'] = combine_role_permissions(instance.role)
         else:
             data['permissions'] = []
-            
+
         return data
 
 
