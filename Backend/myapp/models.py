@@ -169,7 +169,7 @@ class Comment(models.Model):
     
     content = models.TextField(max_length=1000)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(protocol='both', null=True, blank=True)
     user_agent = models.TextField(blank=True)
     
     # Moderation
@@ -232,44 +232,48 @@ class Media(models.Model):
         return self.title
 
 
-# class Newsletter(models.Model):
-#     """Newsletter subscription management"""
+class Newsletter(models.Model):
+    """Newsletter subscription management"""
     
-#     STATUS_CHOICES = [
-#         ('active', 'Active'),
-#         ('inactive', 'Inactive'),
-#         ('unsubscribed', 'Unsubscribed'),
-#         ('bounced', 'Bounced'),
-#     ]
-
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     email = models.EmailField(unique=True)
-#     first_name = models.CharField(max_length=100, blank=True)
-#     last_name = models.CharField(max_length=100, blank=True)
-#     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('unsubscribed', 'Unsubscribed'),
+        ('bounced', 'Bounced'),
+    ]
     
-#     # Preferences
-#     frequency = models.CharField(max_length=20, choices=[
-#         ('daily', 'Daily'),
-#         ('weekly', 'Weekly'),
-#         ('monthly', 'Monthly'),
-#     ], default='weekly')
+    email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     
-#     # Categories they're interested in
-#     interested_categories = models.ManyToManyField(Category, blank=True)
+    # Preferences
+    frequency = models.CharField(max_length=20, choices=[
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+    ], default='weekly')
     
-#     # Tracking
-#     subscription_source = models.CharField(max_length=100, blank=True, help_text="Where they subscribed from")
-#     ip_address = models.GenericIPAddressField(null=True, blank=True)
-#     confirmed_at = models.DateTimeField(null=True, blank=True)
-#     unsubscribed_at = models.DateTimeField(null=True, blank=True)
+    # Categories they're interested in
+    interested_categories = models.ManyToManyField(Category, blank=True)
     
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-
-#     def __str__(self):
-#         name = f"{self.first_name} {self.last_name}".strip() or "Anonymous"
-#         return f"{name} ({self.email})"
+    # Tracking
+    subscription_source = models.CharField(max_length=100, blank=True, help_text="Where they subscribed from")
+    
+    # FIX: Add protocol parameter
+    ip_address = models.GenericIPAddressField(protocol='both', null=True, blank=True)
+    
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    unsubscribed_at = models.DateTimeField(null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='newsletter_created_by', null=True, blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='newsletter_updated_by', null=True, blank=True)
+    
+    def __str__(self):
+        name = f"{self.first_name} {self.last_name}".strip() or "Anonymous"
+        return f"{name} ({self.email})"
 
 
 # class Campaign(models.Model):

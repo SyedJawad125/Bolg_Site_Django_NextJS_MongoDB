@@ -1,7 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .controllers import BlogPostController, CategoryController, CommentController, MediaController, TagController
+from .controllers import BlogPostController, CategoryController, CommentController, MediaController, NewsletterController, TagController
 from utils.decorator import permission_required
 
 category_controller = CategoryController()
@@ -9,6 +9,7 @@ tag_controller = TagController()
 blogpost_controller = BlogPostController()
 comment_controller = CommentController()
 media_controller = MediaController()
+newsletter_controller = NewsletterController()
 
 
 class CategoryViews(ModelViewSet):
@@ -40,7 +41,6 @@ class TagViews(ModelViewSet):
     # authentication_classes = [JWTAuthentication]
     permission_classes = (IsAuthenticated,)
     
-
     @permission_required(['create_tag'])
     def post_tag(self, request):
         return tag_controller.create(request)
@@ -62,7 +62,6 @@ class BlogPostViews(ModelViewSet):
     # authentication_classes = [JWTAuthentication]
     permission_classes = (IsAuthenticated,)
     
-
     @permission_required(['create_blogpost'])
     def post_blogpost(self, request):
         return blogpost_controller.create(request)
@@ -122,3 +121,25 @@ class MediaViews(ModelViewSet):
     @permission_required(['delete_media'])
     def delete_media(self, request):
         return media_controller.delete_media(request)
+
+
+class NewsletterViews(ModelViewSet):
+    """Luxury Newsletter (Label) ViewSet"""
+    # authentication_classes = [JWTAuthentication]
+    permission_classes = (IsAuthenticated,)
+    
+    @permission_required(['create_newsletter'])
+    def post_newsletter(self, request):
+        return newsletter_controller.create(request)
+
+    @permission_required(['read_newsletter'])
+    def get_newsletter(self, request):
+        return newsletter_controller.get_newsletter(request)
+
+    @permission_required(['update_newsletter'])
+    def update_newsletter(self, request):
+        return newsletter_controller.update_newsletter(request)
+
+    @permission_required(['delete_blogpost'])
+    def delete_newsletter(self, request):
+        return newsletter_controller.delete_newsletter(request)

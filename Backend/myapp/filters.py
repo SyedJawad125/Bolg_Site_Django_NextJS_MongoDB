@@ -1,6 +1,6 @@
 import django_filters
 from django_filters import FilterSet, CharFilter, BooleanFilter
-from .models import BlogPost, Category, Tag, Comment, Media
+from .models import BlogPost, Category, Newsletter, Tag, Comment, Media
 
 
 class CategoryFilter(django_filters.FilterSet):
@@ -114,4 +114,36 @@ class MediaFilter(django_filters.FilterSet):
             'is_public',
             'created_at',
             'updated_at',
+        ]
+
+
+
+class NewsletterFilter(django_filters.FilterSet):
+    """
+    Filters for Newsletter model
+    """
+    email = django_filters.CharFilter(lookup_expr='icontains')
+    first_name = django_filters.CharFilter(lookup_expr='icontains')
+    last_name = django_filters.CharFilter(lookup_expr='icontains')
+    status = django_filters.ChoiceFilter(choices=Newsletter.STATUS_CHOICES)
+    frequency = django_filters.CharFilter(lookup_expr='exact')
+    subscription_source = django_filters.CharFilter(lookup_expr='icontains')
+    interested_categories = django_filters.BaseInFilter(field_name='interested_categories__id', lookup_expr='in')
+    created_by = django_filters.NumberFilter(field_name='created_by__id')
+    created_at_after = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='gte')
+    created_at_before = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='lte')
+
+    class Meta:
+        model = Newsletter
+        fields = [
+            'email',
+            'first_name',
+            'last_name',
+            'status',
+            'frequency',
+            'interested_categories',
+            'subscription_source',
+            'created_by',
+            'created_at_after',
+            'created_at_before',
         ]

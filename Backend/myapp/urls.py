@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import BlogPostViews, CategoryViews, CommentViews, MediaViews, TagViews
+from .views import BlogPostViews, CategoryViews, CommentViews, MediaViews, NewsletterViews, TagViews
 
 urlpatterns = [
     # Task URLs
@@ -40,5 +40,13 @@ urlpatterns = [
             "post": "post_media",
             "patch": "update_media",
             "delete": "delete_media"}),name="media"
+    ),
+    # Newsletter URLs
+
+    path('newsletter', NewsletterViews.as_view({
+            "get": "get_newsletter",
+            "post": "post_newsletter",
+            "patch": "update_newsletter",
+            "delete": "delete_newsletter"}),name="newsletter"
     ),
 ]
