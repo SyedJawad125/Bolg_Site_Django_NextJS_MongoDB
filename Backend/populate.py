@@ -1,30 +1,89 @@
+# import os
+# import django
+# # Set the Django settings module environment variable
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'my_project.settings')
+# # Set up Django
+# django.setup()
+# # Import get_user_model to dynamically get the user model
+# from django.contrib.auth import get_user_model
+
+# User = get_user_model()
+
+# def populate():
+#     try:
+#         # Check if the superuser already exists
+#         s_user = User.objects.get(username='adminuser1')
+#         print('Superuser already exists.')
+#     except User.DoesNotExist:
+#         # If the superuser does not exist, create one
+#         s_user = User.objects.create_superuser(
+#             username='adminuser1',
+#             email='syedjawadali92@gmail.com',
+#             password='password123'
+#         )
+#         print('Superuser created successfully.')
+
+# if __name__ == '__main__':
+#     populate()
+
+
+
 import os
 import django
+
 # Set the Django settings module environment variable
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'my_project.settings')
+
 # Set up Django
 django.setup()
-# Import get_user_model to dynamically get the user model
+
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
+from user_auth.models import Role, Permission
 
 User = get_user_model()
 
 def populate():
+    # --- Step 1: Ensure Superuser Role Exists ---
+    permissions = Permission.objects.all()
     try:
-        # Check if the superuser already exists
-        s_user = User.objects.get(username='adminuser1')
+        role = Role.objects.get(code_name='su')
+        print('Superuser Role already exists.')
+        # Clear existing permissions and re-assign all
+        role.permissions.clear()
+    except Role.DoesNotExist:
+        role = Role.objects.create(name='Super', code_name='su')
+        print('Superuser Role created successfully.')
+    
+    # Assign all permissions to superuser role
+    role.permissions.add(*permissions)
+    role.save()
+
+    # --- Step 2: Ensure Superuser Account Exists ---
+    try:
+        s_user = User.objects.get(username='nicenick')
         print('Superuser already exists.')
     except User.DoesNotExist:
-        # If the superuser does not exist, create one
         s_user = User.objects.create_superuser(
-            username='adminuser1',
-            email='syedjawadali92@gmail.com',
-            password='password123'
+            username='nicenick',
+            email='nicenick1992@gmail.com',
+            password='nicenick2025'
         )
         print('Superuser created successfully.')
 
+    # --- Step 3: Assign Role and Other Flags ---   
+    s_user.role = role
+    s_user.is_active = True
+    s_user.is_verified = True
+    s_user.is_blocked = False
+    s_user.name = 'Nice Nick'
+    s_user.mobile = '0333 1906382'
+    s_user.save()
+    print('Superuser role and permissions assigned successfully.')
+
 if __name__ == '__main__':
     populate()
+
 
 
 # import os
