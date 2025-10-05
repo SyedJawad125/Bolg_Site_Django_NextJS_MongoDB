@@ -147,85 +147,89 @@ class BlogPost(models.Model):
 
 
 
-# class Comment(models.Model):
-#     """Comments system with moderation"""
+class Comment(models.Model):
+    """Comments system with moderation"""
     
-#     STATUS_CHOICES = [
-#         ('pending', 'Pending'),
-#         ('approved', 'Approved'),
-#         ('rejected', 'Rejected'),
-#         ('spam', 'Spam'),
-#     ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('spam', 'Spam'),
+    ]
 
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
-#     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     
-#     # Author info (can be registered user or guest)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-#     guest_name = models.CharField(max_length=100, blank=True)
-#     guest_email = models.EmailField(blank=True)
-#     guest_website = models.URLField(blank=True)
+    # Author info (can be registered user or guest)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    guest_name = models.CharField(max_length=100, blank=True)
+    guest_email = models.EmailField(blank=True)
+    guest_website = models.URLField(blank=True)
     
-#     content = models.TextField(max_length=1000)
-#     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-#     ip_address = models.GenericIPAddressField(null=True, blank=True)
-#     user_agent = models.TextField(blank=True)
+    content = models.TextField(max_length=1000)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
     
-#     # Moderation
-#     moderated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='moderated_comments')
-#     moderation_note = models.TextField(blank=True)
+    # Moderation
+    moderated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='moderated_comments')
+    moderation_note = models.TextField(blank=True)
     
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='comment_created_by', null=True, blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comment_updated_by', null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
 
-#     class Meta:
-#         ordering = ['-created_at']
-
-#     def __str__(self):
-#         author = self.user.username if self.user else self.guest_name
-#         return f"Comment by {author} on {self.post.title}"
+    def __str__(self):
+        author = self.user.username if self.user else self.guest_name
+        return f"Comment by {author} on {self.post.title}"
 
 
-# class Media(models.Model):
-#     """Media library for managing images, videos, documents"""
+class Media(models.Model):
+    """Media library for managing images, videos, documents"""
     
-#     TYPE_CHOICES = [
-#         ('image', 'Image'),
-#         ('video', 'Video'),
-#         ('audio', 'Audio'),
-#         ('document', 'Document'),
-#         ('other', 'Other'),
-#     ]
+    TYPE_CHOICES = [
+        ('image', 'Image'),
+        ('video', 'Video'),
+        ('audio', 'Audio'),
+        ('document', 'Document'),
+        ('other', 'Other'),
+    ]
 
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     title = models.CharField(max_length=200)
-#     description = models.TextField(blank=True)
-#     file = models.FileField(upload_to='media/%Y/%m/')
-#     file_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
-#     file_size = models.PositiveIntegerField(help_text="File size in bytes")
-#     mime_type = models.CharField(max_length=100)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    file = models.FileField(upload_to='media/%Y/%m/')
+    file_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    file_size = models.PositiveIntegerField(help_text="File size in bytes")
+    mime_type = models.CharField(max_length=100)
     
-#     # Image specific fields
-#     width = models.PositiveIntegerField(null=True, blank=True)
-#     height = models.PositiveIntegerField(null=True, blank=True)
+    # Image specific fields
+    width = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
     
-#     # SEO
-#     alt_text = models.CharField(max_length=200, blank=True)
-#     caption = models.TextField(blank=True)
+    # SEO
+    alt_text = models.CharField(max_length=200, blank=True)
+    caption = models.TextField(blank=True)
     
-#     # Organization
-#     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
-#     is_public = models.BooleanField(default=True)
+    # Organization
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    is_public = models.BooleanField(default=True)
     
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='media_created_by', null=True, blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='media_updated_by', null=True, blank=True)
 
-#     class Meta:
-#         ordering = ['-created_at']
+    class Meta:
+        ordering = ['-created_at']
 
-#     def __str__(self):
-#         return self.title
+    def __str__(self):
+        return self.title
 
 
 # class Newsletter(models.Model):

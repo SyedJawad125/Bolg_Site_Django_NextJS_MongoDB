@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import BlogPostViews, CategoryViews, TagViews
+from .views import BlogPostViews, CategoryViews, CommentViews, MediaViews, TagViews
 
 urlpatterns = [
     # Task URLs
@@ -24,5 +24,21 @@ urlpatterns = [
             "post": "post_blogpost",
             "patch": "update_blogpost",
             "delete": "delete_blogpost"}),name="blogpost"
+    ),
+    # Comment URLs
+
+    path('comment', CommentViews.as_view({
+            "get": "get_comment",
+            "post": "post_comment",
+            "patch": "update_comment",
+            "delete": "delete_comment"}),name="comment"
+    ),
+    # Media URLs
+
+    path('media', MediaViews.as_view({
+            "get": "get_media",
+            "post": "post_media",
+            "patch": "update_media",
+            "delete": "delete_media"}),name="media"
     ),
 ]

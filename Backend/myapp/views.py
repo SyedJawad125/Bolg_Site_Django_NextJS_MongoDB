@@ -1,12 +1,14 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .controllers import BlogPostController, CategoryController, TagController
+from .controllers import BlogPostController, CategoryController, CommentController, MediaController, TagController
 from utils.decorator import permission_required
 
 category_controller = CategoryController()
 tag_controller = TagController()
 blogpost_controller = BlogPostController()
+comment_controller = CommentController()
+media_controller = MediaController()
 
 
 class CategoryViews(ModelViewSet):
@@ -76,3 +78,47 @@ class BlogPostViews(ModelViewSet):
     @permission_required(['delete_blogpost'])
     def delete_blogpost(self, request):
         return blogpost_controller.delete_blogpost(request)
+
+
+class CommentViews(ModelViewSet):
+    """Luxury Comment (Label) ViewSet"""
+    # authentication_classes = [JWTAuthentication]
+    permission_classes = (IsAuthenticated,)
+    
+    @permission_required(['create_comment'])
+    def post_comment(self, request):
+        return comment_controller.create(request)
+
+    @permission_required(['read_comment'])
+    def get_comment(self, request):
+        return comment_controller.get_comment(request)
+
+    @permission_required(['update_comment'])
+    def update_comment(self, request):
+        return comment_controller.update_comment(request)
+
+    @permission_required(['delete_comment'])
+    def delete_comment(self, request):
+        return comment_controller.delete_comment(request)
+    
+
+class MediaViews(ModelViewSet):
+    """Luxury Comment (Label) ViewSet"""
+    # authentication_classes = [JWTAuthentication]
+    permission_classes = (IsAuthenticated,)
+    
+    @permission_required(['create_media'])
+    def post_media(self, request):
+        return media_controller.create(request)
+
+    @permission_required(['read_media'])
+    def get_media(self, request):
+        return media_controller.get_media(request)
+
+    @permission_required(['update_media'])
+    def update_media(self, request):
+        return media_controller.update_media(request)
+
+    @permission_required(['delete_media'])
+    def delete_media(self, request):
+        return media_controller.delete_media(request)

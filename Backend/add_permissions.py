@@ -25,6 +25,16 @@ permissions = [
     Permission(name='Update BlogPost', code_name='update_blogpost', module_name='BlogPost', description='User can update BlogPost'),
     Permission(name='Delete BlogPost', code_name='delete_blogpost', module_name='BlogPost', description='User can delete BlogPost'),
    
+    Permission(name='Create Comment', code_name='create_comment', module_name='Comment', description='User can create Comment'),
+    Permission(name='Read Comment', code_name='read_comment', module_name='Comment', description='User can read Comment'),
+    Permission(name='Update Comment', code_name='update_comment', module_name='Comment', description='User can update Comment'),
+    Permission(name='Delete Comment', code_name='delete_comment', module_name='Comment', description='User can delete Comment'),
+
+    Permission(name='Create Media', code_name='create_media', module_name='Media', description='User can create Media'),
+    Permission(name='Read Media', code_name='read_media', module_name='Media', description='User can read Media'),
+    Permission(name='Update Media', code_name='update_media', module_name='Media', description='User can update Media'),
+    Permission(name='Delete Media', code_name='delete_media', module_name='Media', description='User can delete Media'),
+
     Permission(name='Create Roles', code_name='create_roles', module_name='Roles', description='User can create roles'),
     Permission(name='Read Roles', code_name='read_roles', module_name='Roles', description='User can read roles'),
     Permission(name='Update Roles', code_name='update_roles', module_name='Roles', description='User can update roles'),
