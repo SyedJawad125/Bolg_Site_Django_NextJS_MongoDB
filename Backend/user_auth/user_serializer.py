@@ -100,6 +100,9 @@ class LoginUserSerializer(serializers.ModelSerializer):
         # ✅ 2. Include token expiry in milliseconds
         expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
         data['age_in_seconds'] = expiry.total_seconds() * 1000
+        data['role_name'] = instance.role.name if instance.role else None
+        data['Role'] = RoleListingSerializer(instance.role).data if instance.role else None
+
 
         # ✅ 3. Handle permissions
         if instance.is_superuser:
