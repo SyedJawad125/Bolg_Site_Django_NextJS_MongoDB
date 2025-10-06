@@ -1,6 +1,6 @@
 import django_filters
 from django_filters import FilterSet, CharFilter, BooleanFilter
-from .models import BlogPost, Category, Newsletter, Tag, Comment, Media
+from .models import BlogPost, Campaign, Category, Newsletter, Tag, Comment, Media
 
 
 class CategoryFilter(django_filters.FilterSet):
@@ -147,3 +147,29 @@ class NewsletterFilter(django_filters.FilterSet):
             'created_at_after',
             'created_at_before',
         ]
+
+
+
+class CampaignFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='icontains')
+    subject = django_filters.CharFilter(lookup_expr='icontains')
+    status = django_filters.ChoiceFilter(choices=Campaign.STATUS_CHOICES)
+    campaign_type = django_filters.ChoiceFilter(choices=Campaign.TYPE_CHOICES)
+    
+    created_after = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='gte')
+    created_before = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='lte')
+    
+    scheduled_after = django_filters.DateTimeFilter(field_name='scheduled_at', lookup_expr='gte')
+    scheduled_before = django_filters.DateTimeFilter(field_name='scheduled_at', lookup_expr='lte')
+    
+    min_recipients = django_filters.NumberFilter(field_name='recipients_count', lookup_expr='gte')
+    max_recipients = django_filters.NumberFilter(field_name='recipients_count', lookup_expr='lte')
+    
+    min_open_rate = django_filters.NumberFilter(method='filter_min_open_rate')
+    min_click_rate = django_filters.NumberFilter(method='filter_min_click_rate')
+    
+    class Meta:
+        model = Campaign
+        fields = ['name', 'subject', 'status', 'campaign_type', 'target_all_subscribers']
+    
+    

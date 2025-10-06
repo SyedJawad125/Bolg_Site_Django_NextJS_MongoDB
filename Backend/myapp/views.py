@@ -1,7 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .controllers import BlogPostController, CategoryController, CommentController, MediaController, NewsletterController, TagController
+from .controllers import BlogPostController, CampaignController, CategoryController, CommentController, MediaController, NewsletterController, TagController
 from utils.decorator import permission_required
 
 category_controller = CategoryController()
@@ -10,6 +10,7 @@ blogpost_controller = BlogPostController()
 comment_controller = CommentController()
 media_controller = MediaController()
 newsletter_controller = NewsletterController()
+campaign_controller = CampaignController()
 
 
 class CategoryViews(ModelViewSet):
@@ -143,3 +144,24 @@ class NewsletterViews(ModelViewSet):
     @permission_required(['delete_blogpost'])
     def delete_newsletter(self, request):
         return newsletter_controller.delete_newsletter(request)
+    
+class CampaignViews(ModelViewSet):
+    """Luxury Campaign (Label) ViewSet"""
+    # authentication_classes = [JWTAuthentication]
+    permission_classes = (IsAuthenticated,)
+    
+    @permission_required(['create_campaign'])
+    def post_campaign(self, request):
+        return campaign_controller.create(request)
+
+    @permission_required(['read_campaign'])
+    def get_campaign(self, request):
+        return campaign_controller.get_campaign(request)
+
+    @permission_required(['update_campaign'])
+    def update_campaign(self, request):
+        return campaign_controller.update_campaign(request)
+
+    @permission_required(['delete_campaign'])
+    def delete_campaign(self, request):
+        return campaign_controller.delete_campaign(request)

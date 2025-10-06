@@ -276,54 +276,55 @@ class Newsletter(models.Model):
         return f"{name} ({self.email})"
 
 
-# class Campaign(models.Model):
-#     """Email campaign management"""
+class Campaign(models.Model):
+    """Email campaign management"""
     
-#     STATUS_CHOICES = [
-#         ('draft', 'Draft'),
-#         ('scheduled', 'Scheduled'),
-#         ('sending', 'Sending'),
-#         ('sent', 'Sent'),
-#         ('paused', 'Paused'),
-#         ('cancelled', 'Cancelled'),
-#     ]
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('scheduled', 'Scheduled'),
+        ('sending', 'Sending'),
+        ('sent', 'Sent'),
+        ('paused', 'Paused'),
+        ('cancelled', 'Cancelled'),
+    ]
 
-#     TYPE_CHOICES = [
-#         ('newsletter', 'Newsletter'),
-#         ('promotion', 'Promotion'),
-#         ('announcement', 'Announcement'),
-#         ('welcome', 'Welcome Series'),
-#     ]
+    TYPE_CHOICES = [
+        ('newsletter', 'Newsletter'),
+        ('promotion', 'Promotion'),
+        ('announcement', 'Announcement'),
+        ('welcome', 'Welcome Series'),
+    ]
 
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     name = models.CharField(max_length=200)
-#     subject = models.CharField(max_length=200)
-#     content = RichTextField()
-#     campaign_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='newsletter')
+    name = models.CharField(max_length=200)
+    subject = models.CharField(max_length=200)
+    content = models.TextField()
+    campaign_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='newsletter')
     
-#     # Targeting
-#     target_categories = models.ManyToManyField(Category, blank=True)
-#     target_all_subscribers = models.BooleanField(default=True)
+    # Targeting
+    target_categories = models.ManyToManyField(Category, blank=True)
+    target_all_subscribers = models.BooleanField(default=True)
     
-#     # Scheduling
-#     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
-#     scheduled_at = models.DateTimeField(null=True, blank=True)
-#     sent_at = models.DateTimeField(null=True, blank=True)
+    # Scheduling
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    scheduled_at = models.DateTimeField(null=True, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
     
-#     # Statistics
-#     recipients_count = models.PositiveIntegerField(default=0)
-#     delivered_count = models.PositiveIntegerField(default=0)
-#     opened_count = models.PositiveIntegerField(default=0)
-#     clicked_count = models.PositiveIntegerField(default=0)
-#     bounced_count = models.PositiveIntegerField(default=0)
-#     unsubscribed_count = models.PositiveIntegerField(default=0)
+    # Statistics
+    recipients_count = models.PositiveIntegerField(default=0)
+    delivered_count = models.PositiveIntegerField(default=0)
+    opened_count = models.PositiveIntegerField(default=0)
+    clicked_count = models.PositiveIntegerField(default=0)
+    bounced_count = models.PositiveIntegerField(default=0)
+    unsubscribed_count = models.PositiveIntegerField(default=0)
     
-#     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='campaign_created_by', null=True, blank=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='campaign_updated_by', null=True, blank=True)
+    
 
-#     def __str__(self):
-#         return self.name
+    def __str__(self):
+        return self.name
 
 
 # class Analytics(models.Model):

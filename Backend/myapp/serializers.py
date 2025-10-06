@@ -1,6 +1,6 @@
 import json
 from rest_framework import serializers
-from .models import BlogPost, Category, Newsletter, Tag, Comment, Media
+from .models import BlogPost, Campaign, Category, Newsletter, Tag, Comment, Media
 from rest_framework.serializers import ModelSerializer
 from user_auth.user_serializer import UserListSerializer
 
@@ -200,3 +200,17 @@ class NewsletterSerializer(serializers.ModelSerializer):
         data['created_by'] = UserListSerializer(instance.created_by).data if instance.created_by else None
         data['updated_by'] = UserListSerializer(instance.updated_by).data if instance.updated_by else None
         return data
+    
+
+class CampaignSerializer(ModelSerializer):
+    class Meta:
+        model = Campaign
+        fields = '__all__'
+        
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['created_by'] = UserListSerializer(instance.created_by).data if instance.created_by else None
+        data['updated_by'] = UserListSerializer(instance.updated_by).data if instance.updated_by else None
+        return data
+    
