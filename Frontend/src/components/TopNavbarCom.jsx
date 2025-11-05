@@ -4,62 +4,90 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faSignInAlt, faUserPlus, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 const TopNavbarCom = () => {
-    const router = useRouter();
-    const [isLoggingOut, setIsLoggingOut] = useState(false);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    useEffect(() => {
-        // Checking authentication status on the client side
-        if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('token');
-            setIsAuthenticated(!!token);
-        }
-    }, []);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      setIsAuthenticated(!!token);
+    }
+  }, []);
 
-    const logout = () => {
-        setIsLoggingOut(true);
-        localStorage.removeItem('token');
-        setIsAuthenticated(false);
-        router.push('/');
-    };
+  const logout = () => {
+    setIsLoggingOut(true);
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    router.push('/');
+  };
 
-    return (
-        <div className="bg-black text-white p-3">
-            <div className="container mx-auto flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                    <FontAwesomeIcon icon={faPhone} className="h-3 w-3" />
-                    <span>(+92) 333 1906382</span>
-                </div>
-                <div className="flex items-center space-x-4 mr-20">
-                    {isAuthenticated ? (
-                        <button 
-                            onClick={logout} 
-                            disabled={isLoggingOut} 
-                            className={`flex items-center space-x-2 text-white hover:text-gray-300 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            <FontAwesomeIcon icon={faSignOutAlt} />
-                            <span>Logout</span>
-                        </button>
-                    ) : (
-                        <Link href="/Login">
-                            <div className="flex items-center space-x-2">
-                                <FontAwesomeIcon icon={faSignInAlt} />
-                                <span>Login</span>
-                            </div>
-                        </Link>
-                    )}
-                    <Link href="/signup">
-                        <div className="flex items-center space-x-2">
-                            <FontAwesomeIcon icon={faUserPlus} />
-                            <span>SignUp</span>
-                        </div>
-                    </Link>
-                </div>
-            </div>
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white shadow-md"
+    >
+      <div className="container mx-auto flex justify-between items-center py-1.5 px-5 text-xs">
+        {/* Left Section */}
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center bg-gradient-to-r from-amber-400 to-yellow-600 text-black font-medium px-2.5 py-0.5 rounded-full">
+            <FontAwesomeIcon icon={faPhone} className="h-2.5 w-2.5 mr-1" />
+            <span>(+92) 333 1906382</span>
+          </div>
         </div>
-    );
+
+        {/* Right Section */}
+        <div className="flex items-center space-x-3 font-medium">
+          {isAuthenticated ? (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={logout}
+              disabled={isLoggingOut}
+              className={`flex items-center gap-1.5 transition-all duration-300 px-3 py-0.5 rounded-full 
+                bg-gradient-to-r from-red-500 to-red-700 text-white hover:shadow-[0_0_8px_rgba(255,0,0,0.5)] 
+                ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <FontAwesomeIcon icon={faSignOutAlt} className="h-3 w-3" />
+              <span>{isLoggingOut ? '...' : 'Logout'}</span>
+            </motion.button>
+          ) : (
+            <Link href="/Login">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-green-600 
+                hover:shadow-[0_0_8px_rgba(16,185,129,0.5)] transition-all duration-300 cursor-pointer"
+              >
+                <FontAwesomeIcon icon={faSignInAlt} className="h-3 w-3" />
+                <span>Login</span>
+              </motion.div>
+            </Link>
+          )}
+
+          <Link href="/signup">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-700 
+              hover:shadow-[0_0_8px_rgba(59,130,246,0.5)] transition-all duration-300 cursor-pointer"
+            >
+              <FontAwesomeIcon icon={faUserPlus} className="h-3 w-3" />
+              <span>Sign Up</span>
+            </motion.div>
+          </Link>
+        </div>
+      </div>
+
+      {/* Elegant Thin Glow Border */}
+      <div className="h-[1px] w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500"></div>
+    </motion.div>
+  );
 };
 
 export default TopNavbarCom;

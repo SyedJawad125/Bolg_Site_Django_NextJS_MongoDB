@@ -2,41 +2,68 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 const NavbarCom = () => {
   const pathname = usePathname();
 
+  const navItems = [
+    { name: 'Home', path: '/' },
+    { name: 'About', path: '/about' },
+    { name: 'Services', path: '/services' },
+    { name: 'Contact', path: '/contact' },
+  ];
+
   return (
-    <nav className="bg-blue-700 w-full">
-      <div className="container mx-auto flex justify-between items-center p-0">
-        <div className="text-white text-1xl font-bold ml-10">
-          <Link href="/">EMPLOYEE MANAGEMENT SYSTEM</Link>
-        </div>
-        <ul className="flex space-x-10 ml-auto mr-10">
-          {[
-            { name: 'Home', path: '/' },
-            { name: 'About', path: '/about' },
-            { name: 'Services', path: '/services' },
-            // { name: 'Products', path: '/publicproducts' },
-            { name: 'Contact', path: '/contact' },
-            // { name: 'Admin', path: '/admindashboard' },
-          ].map((item) => (
-            <li key={item.path}>
-              <Link href={item.path}>
-                <div
-                  className={`${
-                    pathname === item.path ? 'text-red-500' : 'text-white'
-                  } hover:text-black px-3 py-2 text-lg`}
-                >
-                  {item.name}
-                </div>
-              </Link>
-            </li>
-          ))}
-          
+    <motion.nav
+      initial={{ opacity: 0, y: -15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="w-full sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-black to-gray-900 backdrop-blur-md shadow-[0_3px_10px_rgba(0,0,0,0.4)]"
+    >
+      <div className="container mx-auto flex justify-between items-center py-3 px-8">
+        {/* Brand Name */}
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-600 font-bold text-xl tracking-widest"
+        >
+          <Link href="/">AI Blogs</Link>
+        </motion.div>
+
+        {/* Nav Links */}
+        <ul className="flex items-center space-x-8">
+          {navItems.map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <li key={item.path} className="relative group">
+                <Link href={item.path}>
+                  <span
+                    className={`transition-all duration-300 ${
+                      isActive
+                        ? 'text-amber-400 font-semibold'
+                        : 'text-gray-200 hover:text-amber-300'
+                    }`}
+                  >
+                    {item.name}
+                  </span>
+                </Link>
+                {/* Animated underline */}
+                <span
+                  className={`absolute left-0 -bottom-1 h-[2px] rounded-full transition-all duration-300 ${
+                    isActive
+                      ? 'w-full bg-amber-400'
+                      : 'w-0 bg-amber-300 group-hover:w-full'
+                  }`}
+                ></span>
+              </li>
+            );
+          })}
         </ul>
       </div>
-    </nav>
+
+      {/* Elegant Glow Line */}
+      <div className="h-[1px] w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500"></div>
+    </motion.nav>
   );
 };
 
