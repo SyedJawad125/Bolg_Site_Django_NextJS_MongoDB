@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faSignInAlt, faUserPlus, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 
 const TopNavbarCom = () => {
   const router = useRouter();
@@ -26,12 +25,7 @@ const TopNavbarCom = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white shadow-md"
-    >
+    <div className="bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white shadow-md">
       <div className="container mx-auto flex justify-between items-center py-1.5 px-5 text-xs">
         {/* Left Section */}
         <div className="flex items-center space-x-2">
@@ -44,49 +38,40 @@ const TopNavbarCom = () => {
         {/* Right Section */}
         <div className="flex items-center space-x-3 font-medium">
           {isAuthenticated ? (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={logout}
               disabled={isLoggingOut}
               className={`flex items-center gap-1.5 transition-all duration-300 px-3 py-0.5 rounded-full 
                 bg-gradient-to-r from-red-500 to-red-700 text-white hover:shadow-[0_0_8px_rgba(255,0,0,0.5)] 
+                hover:scale-105 active:scale-95
                 ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <FontAwesomeIcon icon={faSignOutAlt} className="h-3 w-3" />
               <span>{isLoggingOut ? '...' : 'Logout'}</span>
-            </motion.button>
+            </button>
           ) : (
             <Link href="/Login">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-green-600 
-                hover:shadow-[0_0_8px_rgba(16,185,129,0.5)] transition-all duration-300 cursor-pointer"
-              >
+              <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-gradient-to-r from-emerald-400 to-green-600 
+                hover:shadow-[0_0_8px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
                 <FontAwesomeIcon icon={faSignInAlt} className="h-3 w-3" />
                 <span>Login</span>
-              </motion.div>
+              </div>
             </Link>
           )}
 
           <Link href="/signup">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-700 
-              hover:shadow-[0_0_8px_rgba(59,130,246,0.5)] transition-all duration-300 cursor-pointer"
-            >
+            <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-700 
+              hover:shadow-[0_0_8px_rgba(59,130,246,0.5)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
               <FontAwesomeIcon icon={faUserPlus} className="h-3 w-3" />
               <span>Sign Up</span>
-            </motion.div>
+            </div>
           </Link>
         </div>
       </div>
 
       {/* Elegant Thin Glow Border */}
       <div className="h-[1px] w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500"></div>
-    </motion.div>
+    </div>
   );
 };
 

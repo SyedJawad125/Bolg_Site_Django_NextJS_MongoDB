@@ -2,7 +2,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
 
 const NavbarCom = () => {
   const pathname = usePathname();
@@ -15,34 +14,30 @@ const NavbarCom = () => {
   ];
 
   return (
-    <motion.nav
-      initial={{ opacity: 0, y: -15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="w-full sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-black to-gray-900 backdrop-blur-md shadow-[0_3px_10px_rgba(0,0,0,0.4)]"
-    >
-      <div className="container mx-auto flex justify-between items-center py-3 px-8">
+    <nav className="w-full bg-gradient-to-r from-gray-900 via-black to-gray-900 backdrop-blur-md shadow-[0_3px_10px_rgba(0,0,0,0.4)]">
+      <div className="container mx-auto flex justify-between items-center py-2 px-8">
         {/* Brand Name */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-600 font-bold text-xl tracking-widest"
+        <div
+          className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-600 font-serif text-2xl tracking-[0.15em] uppercase hover:scale-105 transition-transform duration-300"
+          style={{ fontFamily: "'Playfair Display', 'Georgia', serif" }}
         >
           <Link href="/">AI Blogs</Link>
-        </motion.div>
+        </div>
 
-        {/* Nav Links */}
-        <ul className="flex items-center space-x-8">
+        {/* Nav Links - Centered */}
+        <ul className="absolute left-1/2 transform -translate-x-1/2 flex items-center space-x-10">
           {navItems.map((item) => {
             const isActive = pathname === item.path;
             return (
               <li key={item.path} className="relative group">
                 <Link href={item.path}>
                   <span
-                    className={`transition-all duration-300 ${
+                    className={`transition-all duration-300 font-serif text-base tracking-wider ${
                       isActive
                         ? 'text-amber-400 font-semibold'
                         : 'text-gray-200 hover:text-amber-300'
                     }`}
+                    style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', serif" }}
                   >
                     {item.name}
                   </span>
@@ -59,17 +54,18 @@ const NavbarCom = () => {
             );
           })}
         </ul>
+
+        {/* Spacer for layout balance */}
+        <div className="w-32"></div>
       </div>
 
       {/* Elegant Glow Line */}
       <div className="h-[1px] w-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500"></div>
-    </motion.nav>
+    </nav>
   );
 };
 
 export default NavbarCom;
-
-
 
 
 
