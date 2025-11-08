@@ -1,113 +1,45 @@
-// import Link from 'next/link';
-// import { useRouter } from 'next/navigation';
-// import { useState, useEffect } from 'react';
-
-// const Sidebar = () => {
-//   const router = useRouter();
-//   const [isAuthenticated, setIsAuthenticated] = useState(false);
-//   const [userRole, setUserRole] = useState(null); // State to store the user role
-
-//   // Function to determine if a link is active
-//   const isActive = (pathname) => router.pathname === pathname;
-
-//   useEffect(() => {
-//     // Check authentication status and user role only on the client side
-//     const token = localStorage.getItem('token');
-//     const role = localStorage.getItem('role'); // Assume role is stored in localStorage
-//     setIsAuthenticated(!!token);
-//     setUserRole(role); // Store the role in the state
-//   }, []);
-
-//   const logout = () => {
-//     localStorage.removeItem('token');
-//     localStorage.removeItem('role'); // Remove role on logout
-//     setIsAuthenticated(false);
-//     router.push('/Login');
-//   };
-
-//   const handleChangepassword = () => {
-//     router.push("/changepassword");
-//   };
-
-//   return (
-//     <div className="flex">
-//       <div className="w-55 h-screen bg-gray-800 text-white p-4 flex flex-col justify-between fixed top-0 left-0">
-//         <div>
-//           <h2 className="text-2xl mb-6">Admin Panel</h2>
-//           <nav>
-//             {/* Conditionally render links based on the user's role */}
-//             {/* {userRole !== '10' && ( */}
-              
-//                 <Link href="/admindashboard">
-//                   <div className={`block py-2.5 px-4 rounded ${isActive('/admindashboard') ? 'bg-gray-700' : 'hover:text-red-500 px-3 py-2'}`}>
-//                     Adminpage
-//                   </div>
-//                 </Link>
-//                 <Link href="/employeepage">
-//                   <div className={`block py-2.5 px-4 rounded ${isActive('/employeepage') ? 'bg-gray-700' : 'hover:text-red-500 px-3 py-2'}`}>
-//                     Employee Record
-//                   </div>
-//                 </Link>
-          
-//             {/* )} */}
-//             <Link href="/clientselfpage">
-//               <div className={`block py-2.5 px-4 rounded ${isActive('/clientselfpage') ? 'bg-gray-700' : 'hover:text-red-500 px-3 py-2'}`}>
-//                 Client Self Detail
-//               </div>
-//             </Link>
-//             <Link href="/">
-//               <div className={`block py-2.5 px-4 rounded ${isActive('/') ? 'bg-gray-700' : 'hover:text-red-500 px-3 py-2'}`}>
-//                 Public Site
-//               </div>
-//             </Link>
-//           </nav>
-//         </div>
-//         <div className="space-y-2"> {/* Added space-y-2 to control the gap between elements */}
-//           {isAuthenticated ? (
-//             <button onClick={logout} className="w-full py-2 px-4 bg-red-600 rounded hover:bg-red-500">
-//               Logout
-//             </button>
-//           ) : (
-//             <Link href="/Login">
-//               <div className="block py-2 px-4 bg-green-600 rounded hover:bg-green-500 text-center cursor-pointer">
-//                 Login
-//               </div>
-//             </Link>
-//           )}
-//           <div className="flex justify-end">
-//             <button 
-//               onClick={handleChangepassword} 
-//               className="block py-2 px-4 bg-green-700 rounded hover:bg-green-500 text-center cursor-pointer">
-//               Change Password
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Sidebar;
-
-
-
-
+'use client';
 import { useState, useEffect } from 'react';
-import { Home, Users, FileText, Settings, LogOut, Lock, Eye, Menu, X, ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Home, Users, FileText, Settings, LogOut, Lock, Eye, Menu, X, ChevronRight, User, Shield } from 'lucide-react';
 
-const AdminSideNavbarCom = ({ onNavigate }) => {
+const AdminSideNavbarCom = () => {
+  const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [userRole, setUserRole] = useState('admin');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeRoute, setActiveRoute] = useState('/admindashboard');
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    // Simulated auth check - replace with actual logic
+    // Check authentication
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const role = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+    const userInfo = typeof window !== 'undefined' ? localStorage.getItem('userInfo') : null;
+    
     setIsAuthenticated(!!token);
     setUserRole(role);
+
+    // Parse user info if available
+    if (userInfo) {
+      try {
+        setUserData(JSON.parse(userInfo));
+      } catch (error) {
+        console.error('Error parsing user info:', error);
+        // Set default user data
+        setUserData({
+          Id: 2,
+          Name: "Super",
+          Code_name: "Su"
+        });
+      }
+    }
+
+    // Set active route based on current path
+    if (typeof window !== 'undefined') {
+      setActiveRoute(window.location.pathname);
+    }
   }, []);
 
   const navigationItems = [
@@ -122,7 +54,7 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
       id: 'posts',
       label: 'Blog Posts',
       icon: FileText,
-      path: '/posts',
+      path: '/blogpostpage',
       roles: ['admin', 'editor']
     },
     {
@@ -150,23 +82,45 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
 
   const handleNavigation = (path) => {
     setActiveRoute(path);
-    // In real Next.js: router.push(path)
-    console.log('Navigate to:', path);
+    router.push(path);
   };
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
+      localStorage.removeItem('userInfo');
     }
     setIsAuthenticated(false);
-    // In real Next.js: router.push('/Login')
-    console.log('Logged out');
+    router.push('/Login');
   };
 
   const handleChangePassword = () => {
-    // In real Next.js: router.push('/changepassword')
-    console.log('Navigate to change password');
+    router.push('/changepassword');
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (userData?.Name) {
+      return userData.Name.substring(0, 2).toUpperCase();
+    }
+    return 'AH';
+  };
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (userData?.Name) {
+      return userData.Name;
+    }
+    return 'Admin User';
+  };
+
+  // Get user role display
+  const getUserRoleDisplay = () => {
+    if (userData?.Code_name) {
+      return userData.Code_name;
+    }
+    return userRole || 'Admin';
   };
 
   return (
@@ -175,13 +129,13 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
       <div 
         className={`fixed top-0 left-0 h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white transition-all duration-300 ease-in-out ${
           isCollapsed ? 'w-20' : 'w-72'
-        } shadow-2xl border-r border-slate-700/50`}
+        } shadow-2xl border-r border-slate-700/50 z-50`}
       >
         {/* Header */}
         <div className="relative p-6 border-b border-slate-700/50">
           <div className="flex items-center justify-between">
             <div className={`flex items-center space-x-3 ${isCollapsed ? 'justify-center w-full' : ''}`}>
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                 <FileText className="w-6 h-6" />
               </div>
               {!isCollapsed && (
@@ -205,7 +159,7 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
           {isCollapsed && (
             <button
               onClick={() => setIsCollapsed(false)}
-              className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-700 hover:bg-slate-600 rounded-full flex items-center justify-center shadow-lg transition-colors"
+              className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-700 hover:bg-slate-600 rounded-full flex items-center justify-center shadow-lg transition-colors border border-slate-600"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -225,29 +179,38 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
                 onClick={() => handleNavigation(item.path)}
                 onMouseEnter={() => setHoveredItem(item.id)}
                 onMouseLeave={() => setHoveredItem(null)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group relative ${
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-500/20'
-                    : 'hover:bg-slate-700/50'
+                    ? 'bg-gradient-to-r from-blue-600/90 to-purple-600/90 shadow-lg shadow-blue-500/20'
+                    : 'hover:bg-slate-700/30'
                 } ${isCollapsed ? 'justify-center' : ''}`}
               >
+                {/* Active indicator */}
                 {isActive && !isCollapsed && (
-                  <div className="absolute left-0 w-1 h-8 bg-white rounded-r-full" />
+                  <div className="absolute left-0 w-1 h-8 bg-white rounded-r-full shadow-lg" />
                 )}
+                
+                {/* Background glow effect */}
+                {isActive && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10" />
+                )}
+                
                 <Icon 
-                  className={`w-5 h-5 transition-transform duration-200 ${
+                  className={`w-5 h-5 transition-transform duration-200 relative z-10 ${
                     isHovered ? 'scale-110' : ''
                   } ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}
                 />
+                
                 {!isCollapsed && (
-                  <span className={`flex-1 text-left font-medium ${
+                  <span className={`flex-1 text-left font-medium relative z-10 ${
                     isActive ? 'text-white' : 'text-slate-300 group-hover:text-white'
                   }`}>
                     {item.label}
                   </span>
                 )}
+                
                 {!isCollapsed && isHovered && !isActive && (
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 relative z-10" />
                 )}
               </button>
             );
@@ -256,16 +219,44 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
 
         {/* Footer Actions */}
         <div className="p-4 border-t border-slate-700/50 space-y-2">
-          {/* User Info */}
+          {/* User Info - Enhanced Design */}
           {!isCollapsed && (
-            <div className="mb-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700/30">
+            <div className="mb-4 p-4 bg-slate-800/30 rounded-xl border border-slate-700/50 backdrop-blur-sm">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-sm font-bold">
-                  AH
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                    {getUserInitials()}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
+                    <Shield className="w-3 h-3 text-white" />
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">Admin User</p>
-                  <p className="text-xs text-slate-400 capitalize">{userRole || 'Admin'}</p>
+                  <p className="text-sm font-semibold text-white truncate">
+                    {getUserDisplayName()}
+                  </p>
+                  <p className="text-xs text-slate-300 capitalize mt-1">
+                    {getUserRoleDisplay()}
+                  </p>
+                  {userData?.Id && (
+                    <p className="text-xs text-slate-400 mt-1">
+                      ID: {userData.Id}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Collapsed User Info */}
+          {isCollapsed && (
+            <div className="mb-4 flex justify-center">
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                  {getUserInitials()}
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
+                  <Shield className="w-2 h-2 text-white" />
                 </div>
               </div>
             </div>
@@ -274,11 +265,11 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
           {/* Change Password */}
           <button
             onClick={handleChangePassword}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/30 hover:border-slate-600/50 transition-all duration-200 group ${
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-slate-800/30 hover:bg-slate-700/40 border border-slate-700/50 hover:border-slate-600/60 transition-all duration-200 group ${
               isCollapsed ? 'justify-center' : ''
             }`}
           >
-            <Lock className="w-5 h-5 text-slate-400 group-hover:text-blue-400 transition-colors" />
+            <Lock className="w-5 h-5 text-slate-400 group-hover:text-amber-400 transition-colors" />
             {!isCollapsed && (
               <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
                 Change Password
@@ -290,7 +281,7 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
           {isAuthenticated ? (
             <button
               onClick={handleLogout}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-500/20 transition-all duration-200 group ${
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-gradient-to-r from-red-600/90 to-red-700/90 hover:from-red-500/90 hover:to-red-600/90 shadow-lg shadow-red-500/20 transition-all duration-200 group ${
                 isCollapsed ? 'justify-center' : ''
               }`}
             >
@@ -303,7 +294,7 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
             </button>
           ) : (
             <button
-              onClick={() => console.log('Navigate to login')}
+              onClick={() => router.push('/Login')}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 shadow-lg shadow-green-500/20 transition-all duration-200 group ${
                 isCollapsed ? 'justify-center' : ''
               }`}
@@ -319,7 +310,13 @@ const AdminSideNavbarCom = ({ onNavigate }) => {
         </div>
       </div>
 
-      
+      {/* Overlay for mobile */}
+      {!isCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setIsCollapsed(true)}
+        />
+      )}
     </div>
   );
 };
