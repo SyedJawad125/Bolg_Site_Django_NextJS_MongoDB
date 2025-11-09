@@ -73,12 +73,7 @@ def check_for_one_or_many(instances):
 
 
 def create_response(message, data=None, count=None):
-    resp = {"message": message}
-    if count:
-        resp['count'] = count
-    if data:
-        resp['data'] = data
-    return resp
+    return {"message": message, "count": count, "data": data}
 
 
 def get_end_date(months):

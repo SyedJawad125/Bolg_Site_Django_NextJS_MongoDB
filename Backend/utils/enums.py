@@ -223,3 +223,18 @@ EMPLOYEE = 'Employee'
 INVITED = "Invited"
 ACTIVE = "Active"
 DEACTIVATED = "Deactivated"
+INACTIVE = "Inactive"
+
+SOLD = "Sold"
+NOT_SOLD = "Not Sold"
+
+BUY_NOW = "Buy Now"
+AUCTION = "Auction"
+
+FRONT = "Front"
+BACK = "Back"
+
+PROCESSED = "Processed"
+
+PUBLISHED = "Published"
+DRAFT = "Draft"
