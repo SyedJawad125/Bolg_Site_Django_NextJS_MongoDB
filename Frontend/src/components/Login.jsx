@@ -53,15 +53,18 @@ const Login = () => {
       
       console.log('Login API response:', response.data);
 
-      // Check if login was successful
+      // In your handleSubmit function, after successful login:
       if (response.data.message === 'Successful') {
-        // Pass the entire response data to login function
         login(response.data);
         
-        console.log('Login successful, redirecting to admindashboard...');
+        // Add this line to notify the sidebar about auth change
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('authStateChanged'));
+        }
         
-        // Redirect to dashboard or home page
+        console.log('Login successful, redirecting to admindashboard...');
         router.push('/admindashboard');
+
       } else {
         setError(response.data.message || 'Login failed. Please try again.');
       }
