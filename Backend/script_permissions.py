@@ -98,51 +98,7 @@ permissions = [
     Permission(name='Delete Campaign', code_name='delete_campaign', module_name='Campaign', module_label='Campaign Management',
             description='User can delete campaign'),
 
-    # Permission(name='Show Auction', code_name='show_auction', module_name='Auction', module_label='Auction', description='User can see auction'),
-    # Permission(name='Create Auction', code_name='create_auction', module_name='Auction', module_label='Auction', description='User can create auction'),
-    # Permission(name='Read Auction', code_name='read_auction', module_name='Auction', module_label='Auction', description='User can read auction'),
-    # Permission(name='Update Auction', code_name='update_auction', module_name='Auction', module_label='Auction', description='User can update auction'),
-    # Permission(name='Delete Auction', code_name='delete_auction', module_name='Auction', module_label='Auction', description='User can delete auction'),
-
-    # Permission(name='Show Tag', code_name='show_tag', module_name='Tag', module_label='Tags', description='User can see tag'),
-    # Permission(name='Create Tag', code_name='create_tag', module_name='Tag', module_label='Tags', description='User can create tag'),
-    # Permission(name='Read Tag', code_name='read_tag', module_name='Tag', module_label='Tags', description='User can read tag'),
-    # Permission(name='Update Tag', code_name='update_tag', module_name='Tag', module_label='Tags', description='User can update tag'),
-    # Permission(name='Delete Tag', code_name='delete_tag', module_name='Tag', module_label='Tags', description='User can delete tag'),
-
-    # Permission(name='Show Lot', code_name='show_lot', module_name='Lot', module_label='Lots', description='User can see lot'),
-    # Permission(name='Create Lot', code_name='create_lot', module_name='Lot', module_label='Lots', description='User can create lot'),
-    # Permission(name='Read Lot', code_name='read_lot', module_name='Lot', module_label='Lots', description='User can read lot'),
-    # Permission(name='Update Lot', code_name='update_lot', module_name='Lot', module_label='Lots', description='User can update lot'),
-    # Permission(name='Delete Lot', code_name='delete_lot', module_name='Lot', module_label='Lots', description='User can delete lot'),
-
-    # Permission(name='Show FAQ', code_name='show_faq', module_name='FAQ', module_label='FAQs', description='User can see faq'),
-    # Permission(name='Create FAQ', code_name='create_faq', module_name='FAQ', module_label='FAQs', description='User can create faq'),
-    # Permission(name='Read FAQ', code_name='read_faq', module_name='FAQ', module_label='FAQs', description='User can read faq'),
-    # Permission(name='Update FAQ', code_name='update_faq', module_name='FAQ', module_label='FAQs', description='User can update faq'),
-    # Permission(name='Delete FAQ', code_name='delete_faq', module_name='FAQ', module_label='FAQs', description='User can delete faq'),
-
-    # Permission(name='Show Category', code_name='show_news_category', module_name='Category', module_label='Categories', description='User can see Category'),
-    # Permission(name='Create Category', code_name='create_news_category', module_name='Category', module_label='Categories', description='User can create Category'),
-    # Permission(name='Read Category', code_name='read_news_category', module_name='Category', module_label='Categories', description='User can read Category'),
-    # Permission(name='Update Category', code_name='update_news_category', module_name='Category', module_label='Categories', description='User can update Category'),
-    # Permission(name='Delete Category', code_name='delete_news_category', module_name='Category', module_label='Categories', description='User can delete Category'),
-
-    # Permission(name='Show NewsUpdate', code_name='show_news_update', module_name='NewsUpdate', module_label='NewsUpdate', description='User can see NewsUpdate'),
-    # Permission(name='Create NewsUpdate', code_name='create_news_update', module_name='NewsUpdate', module_label='NewsUpdate', description='User can create NewsUpdate'),
-    # Permission(name='Read NewsUpdate', code_name='read_news_update', module_name='NewsUpdate', module_label='NewsUpdate', description='User can read NewsUpdate'),
-    # Permission(name='Update NewsUpdate', code_name='update_news_update', module_name='NewsUpdate', module_label='NewsUpdate', description='User can update NewsUpdate'),
-    # Permission(name='Delete NewsUpdate', code_name='delete_news_update', module_name='NewsUpdate', module_label='NewsUpdate', description='User can delete NewsUpdate'),
     
-    # Permission(name='Read Profile', code_name='get_profile', module_name='Profile', module_label='Profile', description='User can see profile'),
-    # Permission(name='Update Profile', code_name='update_profile', module_name='Profile', module_label='Profile', description='User can create profile'),
-
-    # Permission(name='Show Business', code_name='show_business', module_name='Business', module_label='Business', description='User can see Business'),
-    # Permission(name='Create Business', code_name='create_business', module_name='Business', module_label='Business', description='User can create Business'),
-    # Permission(name='Read Business', code_name='read_business', module_name='Business', module_label='Business', description='User can read Business'),
-    # Permission(name='Update Business', code_name='update_business', module_name='Business', module_label='Business', description='User can update Business'),
-    # Permission(name='Delete Business', code_name='delete_business', module_name='Business', module_label='Business', description='User can delete Business'),
-
 ]
 
 
