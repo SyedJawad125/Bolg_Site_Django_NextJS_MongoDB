@@ -242,6 +242,9 @@ class CategoryListingSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug', 'image', 'is_active', 'subcategories_count']
     
     def get_subcategories_count(self, obj):
+        # Check if object is deleted first
+        if obj.deleted:
+            return 0
         return obj.subcategories.filter(deleted=False, is_active=True).count()
     
     def to_representation(self, instance):
@@ -262,13 +265,36 @@ class CategorySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Category
-        exclude = ['deleted']
+        fields = [
+            'id', 
+            'name', 
+            'slug', 
+            'description', 
+            'image', 
+            'is_active', 
+            'meta_title', 
+            'meta_description',
+            'subcategories_count',
+            'posts_count',
+            'created_by',
+            'updated_by',
+            'parent',
+            'subcategories',
+            'created_at',
+            'updated_at'
+        ]
         read_only_fields = ('created_at', 'updated_at', 'created_by', 'updated_by', 'slug')
     
     def get_subcategories_count(self, obj):
+        # Return 0 for deleted categories
+        if obj.deleted:
+            return 0
         return obj.subcategories.filter(deleted=False, is_active=True).count()
     
     def get_posts_count(self, obj):
+        # Return 0 for deleted categories
+        if obj.deleted:
+            return 0
         return obj.blogpost_set.filter(deleted=False, status=PUBLISHED).count()
     
     def get_created_by(self, obj):
@@ -287,13 +313,19 @@ class CategorySerializer(serializers.ModelSerializer):
     
     def get_parent(self, obj):
         """Get parent category data"""
-        if obj.parent:
+        # Don't return parent data for deleted categories
+        if obj.deleted:
+            return None
+        if obj.parent and not obj.parent.deleted:
             return CategoryListingSerializer(obj.parent).data
         return None
     
     def get_subcategories(self, obj):
         """Get subcategories data"""
-        # Always include subcategories for single object retrieval
+        # Don't return subcategories for deleted categories
+        if obj.deleted:
+            return []
+            
         request = self.context.get('request')
         if request and request.method == 'GET':
             # Check if this is a single object retrieval (not list)
@@ -363,8 +395,6 @@ class CategorySerializer(serializers.ModelSerializer):
             data['updated_at'] = data['updated_at'].replace('T', ' ').split('.')[0]
         
         return data
-
-
 # ======================= TAG SERIALIZERS =======================
 
 class TagListingSerializer(serializers.ModelSerializer):

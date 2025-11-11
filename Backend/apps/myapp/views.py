@@ -38,7 +38,57 @@ class CategoryView(BaseView):
     
     @permission_required([DELETE_CATEGORY])
     def delete(self, request):
-        return super().delete_(request)
+        # return super().delete_(request)
+            """
+            Soft delete a category
+            """
+            try:
+                category_id = request.query_params.get('id')
+                
+                if not category_id:
+                    return Response(
+                        create_response(ID_NOT_PROVIDED), 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                # Get the category instance
+                instance = self.serializer_class.Meta.model.objects.filter(
+                    deleted=False, 
+                    id=category_id
+                ).first()
+                
+                if not instance:
+                    return Response(
+                        create_response(NOT_FOUND), 
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                
+                # Store category name for response message
+                category_name = instance.name
+                
+                # Perform soft delete
+                instance.deleted = True
+                instance.updated_by = request.user
+                instance.save()
+                
+                # Return simple success response without full object data
+                response_data = {
+                    'id': instance.id,
+                    'name': category_name,
+                    'message': f'Category "{category_name}" has been deleted successfully'
+                }
+                
+                return Response(
+                    create_response(SUCCESSFUL, response_data), 
+                    status=status.HTTP_200_OK
+                )
+                
+            except Exception as e:
+                print(f"Delete Error: {str(e)}")
+                return Response(
+                    create_response(str(e)), 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
 
 class TagView(BaseView):
