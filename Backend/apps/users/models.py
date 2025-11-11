@@ -76,6 +76,13 @@ class User(AbstractBaseUser, TimeStamps):
     def has_module_perms(self, app_label):
         return self.is_superuser
 
+    def get_full_name(self):
+        """Return the full name of the user."""
+        return self.full_name or f"{self.first_name} {self.last_name}"
+    
+    def get_short_name(self):
+        """Return the short name for the user."""
+        return self.first_name
 
 class Role(TimeUserStamps):
     name = models.CharField(max_length=100, validators=[val_name])

@@ -10,8 +10,8 @@ from django_ckeditor_5.fields import CKEditor5Field
 
 class Category(TimeUserStamps):
     """Blog post categories with hierarchical structure"""
-    name = models.CharField(max_length=100, unique=True)
-    slug = models.SlugField(max_length=100, unique=True, blank=True)
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, blank=True)
     description = CKEditor5Field(config_name='extends',blank=True, null=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories')
     image = models.ImageField(upload_to='categories/', blank=True, null=True)

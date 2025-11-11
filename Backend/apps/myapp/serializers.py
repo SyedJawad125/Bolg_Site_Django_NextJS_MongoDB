@@ -235,9 +235,14 @@ User = get_user_model()
 
 class CategoryListingSerializer(serializers.ModelSerializer):
     """Minimal serializer for category listings in dropdowns/references"""
+    subcategories_count = serializers.SerializerMethodField()
+    
     class Meta:
         model = Category
-        fields = ['id', 'name', 'slug', 'image']
+        fields = ['id', 'name', 'slug', 'image', 'is_active', 'subcategories_count']
+    
+    def get_subcategories_count(self, obj):
+        return obj.subcategories.filter(deleted=False, is_active=True).count()
     
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -250,6 +255,10 @@ class CategorySerializer(serializers.ModelSerializer):
     """Full category serializer with validations"""
     subcategories_count = serializers.SerializerMethodField()
     posts_count = serializers.SerializerMethodField()
+    created_by = serializers.SerializerMethodField()
+    updated_by = serializers.SerializerMethodField()
+    parent = serializers.SerializerMethodField()
+    subcategories = serializers.SerializerMethodField()
     
     class Meta:
         model = Category
@@ -261,6 +270,37 @@ class CategorySerializer(serializers.ModelSerializer):
     
     def get_posts_count(self, obj):
         return obj.blogpost_set.filter(deleted=False, status=PUBLISHED).count()
+    
+    def get_created_by(self, obj):
+        """Get created by user with fallback to username"""
+        if obj.created_by:
+            full_name = obj.created_by.get_full_name()
+            return full_name.strip() if full_name and full_name.strip() else obj.created_by.username
+        return None
+    
+    def get_updated_by(self, obj):
+        """Get updated by user with fallback to username"""
+        if obj.updated_by:
+            full_name = obj.updated_by.get_full_name()
+            return full_name.strip() if full_name and full_name.strip() else obj.updated_by.username
+        return None
+    
+    def get_parent(self, obj):
+        """Get parent category data"""
+        if obj.parent:
+            return CategoryListingSerializer(obj.parent).data
+        return None
+    
+    def get_subcategories(self, obj):
+        """Get subcategories data"""
+        # Always include subcategories for single object retrieval
+        request = self.context.get('request')
+        if request and request.method == 'GET':
+            # Check if this is a single object retrieval (not list)
+            if hasattr(obj, 'id') and not isinstance(obj, list):
+                subcategories = obj.subcategories.filter(deleted=False, is_active=True)
+                return CategoryListingSerializer(subcategories, many=True, context=self.context).data
+        return []
     
     def validate_name(self, value):
         """Validate category name"""
@@ -309,21 +349,18 @@ class CategorySerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['created_by'] = instance.created_by.get_full_name() if instance.created_by else None
-        data['updated_by'] = instance.updated_by.get_full_name() if instance.updated_by else None
         
-        if instance.parent:
-            data['parent'] = CategoryListingSerializer(instance.parent).data
-        
+        # Handle image URL
         if instance.image:
             data['image'] = f"{BACKEND_BASE_URL}{instance.image.url}"
+        else:
+            data['image'] = None
         
-        # Add subcategories in detailed view
-        if not self.context.get('request') or not self.context['request'].query_params.get('id'):
-            data['subcategories'] = CategoryListingSerializer(
-                instance.subcategories.filter(deleted=False, is_active=True), 
-                many=True
-            ).data
+        # Format datetime fields if needed
+        if isinstance(data.get('created_at'), str):
+            data['created_at'] = data['created_at'].replace('T', ' ').split('.')[0]
+        if isinstance(data.get('updated_at'), str):
+            data['updated_at'] = data['updated_at'].replace('T', ' ').split('.')[0]
         
         return data
 
