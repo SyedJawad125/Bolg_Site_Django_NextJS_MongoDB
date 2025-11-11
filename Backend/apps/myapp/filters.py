@@ -1,5 +1,5 @@
 import django_filters
-from django_filters import FilterSet, CharFilter, BooleanFilter
+from django_filters import FilterSet, CharFilter, BooleanFilter, NumberFilter, DateTimeFilter, ChoiceFilter, ModelMultipleChoiceFilter, UUIDFilter, BaseInFilter
 from .models import BlogPost, Campaign, Category, Newsletter, Tag, Comment, Media
 
 
@@ -7,169 +7,127 @@ class CategoryFilter(django_filters.FilterSet):
     id = CharFilter(field_name='id')
     name = CharFilter(field_name='name', lookup_expr='icontains')
     slug = CharFilter(field_name='slug', lookup_expr='iexact')
-    parent = CharFilter(field_name='parent__id')  # filter by parent category ID
+    parent = CharFilter(field_name='parent__id')
     is_active = BooleanFilter(field_name='is_active')
 
     class Meta:
         model = Category
-        fields = []  # only the filters we define above
+        fields = []
 
 
 class TagFilter(FilterSet):
     id = CharFilter(field_name='id')
     name = CharFilter(field_name='name', lookup_expr='icontains')
     color = CharFilter(field_name='color', lookup_expr='iexact')
+    is_active = BooleanFilter(field_name='is_active')  # MISSING FIELD
 
     class Meta:
         model = Tag
-        fields = []  # Only use defined filters
-
-
+        fields = []
 
 
 class BlogPostFilter(django_filters.FilterSet):
-    # Basic text search
-    title = django_filters.CharFilter(field_name='title', lookup_expr='icontains')
-    subtitle = django_filters.CharFilter(field_name='subtitle', lookup_expr='icontains')
-    excerpt = django_filters.CharFilter(field_name='excerpt', lookup_expr='icontains')
-    content = django_filters.CharFilter(field_name='content', lookup_expr='icontains')
-
-    # ForeignKey & M2M filtering
-    author = django_filters.NumberFilter(field_name='author__id')
-    category = django_filters.NumberFilter(field_name='category__id')
-    tags = django_filters.ModelMultipleChoiceFilter(
-        field_name="tags",
-        to_field_name="id",
-        queryset=BlogPost.tags.rel.model.objects.all()
+    title = CharFilter(field_name='title', lookup_expr='icontains')
+    subtitle = CharFilter(field_name='subtitle', lookup_expr='icontains')
+    excerpt = CharFilter(field_name='excerpt', lookup_expr='icontains')
+    content = CharFilter(field_name='content', lookup_expr='icontains')
+    
+    # FIXED: author should be CharFilter since it's a CharField, not NumberFilter
+    author = CharFilter(field_name='author', lookup_expr='icontains')
+    category = NumberFilter(field_name='category__id')
+    
+    # FIXED: Corrected ModelMultipleChoiceFilter
+    tags = ModelMultipleChoiceFilter(
+        field_name="tags__id",
+        queryset=Tag.objects.all()
     )
 
-    # Choice filters
-    status = django_filters.ChoiceFilter(choices=BlogPost.STATUS_CHOICES)
-    visibility = django_filters.ChoiceFilter(choices=BlogPost.VISIBILITY_CHOICES)
+    status = ChoiceFilter(choices=BlogPost.STATUS_CHOICES)
+    visibility = ChoiceFilter(choices=BlogPost.VISIBILITY_CHOICES)
 
-    # Boolean filters
-    is_featured = django_filters.BooleanFilter()
-    allow_comments = django_filters.BooleanFilter()
-    is_premium = django_filters.BooleanFilter()
+    is_featured = BooleanFilter()
+    allow_comments = BooleanFilter()
+    is_premium = BooleanFilter()
 
-    # Date/time filters
-    created_at__gte = django_filters.DateTimeFilter(field_name="created_at", lookup_expr='gte')
-    created_at__lte = django_filters.DateTimeFilter(field_name="created_at", lookup_expr='lte')
-    published_at__gte = django_filters.DateTimeFilter(field_name="published_at", lookup_expr='gte')
-    published_at__lte = django_filters.DateTimeFilter(field_name="published_at", lookup_expr='lte')
+    created_at__gte = DateTimeFilter(field_name="created_at", lookup_expr='gte')
+    created_at__lte = DateTimeFilter(field_name="created_at", lookup_expr='lte')
+    published_at__gte = DateTimeFilter(field_name="published_at", lookup_expr='gte')
+    published_at__lte = DateTimeFilter(field_name="published_at", lookup_expr='lte')
 
     class Meta:
         model = BlogPost
-        fields = [
-            'title', 'subtitle', 'excerpt', 'content',
-            'author', 'category', 'tags',
-            'status', 'visibility',
-            'is_featured', 'allow_comments', 'is_premium',
-            'created_at__gte', 'created_at__lte',
-            'published_at__gte', 'published_at__lte'
-        ]
+        fields = []
 
 
 class CommentFilter(django_filters.FilterSet):
-    # Custom filters
-    post_title = django_filters.CharFilter(field_name='post__title', lookup_expr='icontains')
-    username = django_filters.CharFilter(field_name='user__username', lookup_expr='icontains')
-    guest_name = django_filters.CharFilter(lookup_expr='icontains')
-    guest_email = django_filters.CharFilter(lookup_expr='icontains')
-    status = django_filters.ChoiceFilter(choices=Comment.STATUS_CHOICES)
-    created_after = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='gte')
-    created_before = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='lte')
+    post_title = CharFilter(field_name='post__title', lookup_expr='icontains')
+    username = CharFilter(field_name='user__username', lookup_expr='icontains')
+    guest_name = CharFilter(lookup_expr='icontains')
+    guest_email = CharFilter(lookup_expr='icontains')
+    status = ChoiceFilter(choices=Comment.STATUS_CHOICES)
+    created_after = DateTimeFilter(field_name='created_at', lookup_expr='gte')
+    created_before = DateTimeFilter(field_name='created_at', lookup_expr='lte')
 
     class Meta:
         model = Comment
-        fields = [
-            'post',          # filter by Post ID
-            'post_title',    # filter by Post title
-            'status',        # pending, approved, etc.
-            'user',          # registered user
-            'guest_name',    # guest name
-            'guest_email',   # guest email
-            'parent',        # filter replies of a specific comment
-            'created_after',
-            'created_before',
-        ]
+        fields = []
 
 
 class MediaFilter(django_filters.FilterSet):
-    title = django_filters.CharFilter(lookup_expr='icontains')
-    description = django_filters.CharFilter(lookup_expr='icontains')
-    file_type = django_filters.CharFilter(lookup_expr='exact')
-    uploaded_by = django_filters.UUIDFilter(field_name='uploaded_by__id', lookup_expr='exact')
-    is_public = django_filters.BooleanFilter()
+    title = CharFilter(lookup_expr='icontains')
+    description = CharFilter(lookup_expr='icontains')
+    file_type = ChoiceFilter(choices=Media.TYPE_CHOICES)  # FIXED: Should be ChoiceFilter
+    uploaded_by = NumberFilter(field_name='uploaded_by__id')  # FIXED: Should be NumberFilter, not UUIDFilter
+    is_public = BooleanFilter()
     created_at = django_filters.DateFromToRangeFilter()
     updated_at = django_filters.DateFromToRangeFilter()
-    min_size = django_filters.NumberFilter(field_name='file_size', lookup_expr='gte')
-    max_size = django_filters.NumberFilter(field_name='file_size', lookup_expr='lte')
+    min_size = NumberFilter(field_name='file_size', lookup_expr='gte')
+    max_size = NumberFilter(field_name='file_size', lookup_expr='lte')
 
     class Meta:
         model = Media
-        fields = [
-            'file_type',
-            'uploaded_by',
-            'is_public',
-            'created_at',
-            'updated_at',
-        ]
-
+        fields = []
 
 
 class NewsletterFilter(django_filters.FilterSet):
-    """
-    Filters for Newsletter model
-    """
-    email = django_filters.CharFilter(lookup_expr='icontains')
-    first_name = django_filters.CharFilter(lookup_expr='icontains')
-    last_name = django_filters.CharFilter(lookup_expr='icontains')
-    status = django_filters.ChoiceFilter(choices=Newsletter.STATUS_CHOICES)
-    frequency = django_filters.CharFilter(lookup_expr='exact')
-    subscription_source = django_filters.CharFilter(lookup_expr='icontains')
-    interested_categories = django_filters.BaseInFilter(field_name='interested_categories__id', lookup_expr='in')
-    created_by = django_filters.NumberFilter(field_name='created_by__id')
-    created_at_after = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='gte')
-    created_at_before = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='lte')
+    email = CharFilter(lookup_expr='icontains')
+    first_name = CharFilter(lookup_expr='icontains')
+    last_name = CharFilter(lookup_expr='icontains')
+    status = ChoiceFilter(choices=Newsletter.STATUS_CHOICES)
+    frequency = ChoiceFilter(choices=Newsletter.FREQUENCY_CHOICES)  # FIXED: Should be ChoiceFilter
+    subscription_source = CharFilter(lookup_expr='icontains')
+    interested_categories = BaseInFilter(field_name='interested_categories__id', lookup_expr='in')
+    created_by = NumberFilter(field_name='created_by__id')
+    created_at_after = DateTimeFilter(field_name='created_at', lookup_expr='gte')
+    created_at_before = DateTimeFilter(field_name='created_at', lookup_expr='lte')
 
     class Meta:
         model = Newsletter
-        fields = [
-            'email',
-            'first_name',
-            'last_name',
-            'status',
-            'frequency',
-            'interested_categories',
-            'subscription_source',
-            'created_by',
-            'created_at_after',
-            'created_at_before',
-        ]
-
+        fields = []
 
 
 class CampaignFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(lookup_expr='icontains')
-    subject = django_filters.CharFilter(lookup_expr='icontains')
-    status = django_filters.ChoiceFilter(choices=Campaign.STATUS_CHOICES)
-    campaign_type = django_filters.ChoiceFilter(choices=Campaign.TYPE_CHOICES)
+    name = CharFilter(lookup_expr='icontains')
+    subject = CharFilter(lookup_expr='icontains')
+    status = ChoiceFilter(choices=Campaign.STATUS_CHOICES)
+    campaign_type = ChoiceFilter(choices=Campaign.TYPE_CHOICES)
     
-    created_after = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='gte')
-    created_before = django_filters.DateTimeFilter(field_name='created_at', lookup_expr='lte')
+    created_after = DateTimeFilter(field_name='created_at', lookup_expr='gte')
+    created_before = DateTimeFilter(field_name='created_at', lookup_expr='lte')
     
-    scheduled_after = django_filters.DateTimeFilter(field_name='scheduled_at', lookup_expr='gte')
-    scheduled_before = django_filters.DateTimeFilter(field_name='scheduled_at', lookup_expr='lte')
+    scheduled_after = DateTimeFilter(field_name='scheduled_at', lookup_expr='gte')
+    scheduled_before = DateTimeFilter(field_name='scheduled_at', lookup_expr='lte')
     
-    min_recipients = django_filters.NumberFilter(field_name='recipients_count', lookup_expr='gte')
-    max_recipients = django_filters.NumberFilter(field_name='recipients_count', lookup_expr='lte')
+    min_recipients = NumberFilter(field_name='recipients_count', lookup_expr='gte')
+    max_recipients = NumberFilter(field_name='recipients_count', lookup_expr='lte')
     
-    min_open_rate = django_filters.NumberFilter(method='filter_min_open_rate')
-    min_click_rate = django_filters.NumberFilter(method='filter_min_click_rate')
+    # FIXED: Added missing method implementations
+    def filter_min_open_rate(self, queryset, name, value):
+        return queryset.filter(opened_count__gte=value)
     
+    def filter_min_click_rate(self, queryset, name, value):
+        return queryset.filter(clicked_count__gte=value)
+
     class Meta:
         model = Campaign
-        fields = ['name', 'subject', 'status', 'campaign_type', 'target_all_subscribers']
-    
-    
+        fields = []

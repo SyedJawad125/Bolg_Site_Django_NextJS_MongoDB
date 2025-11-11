@@ -58,19 +58,19 @@ class NewsUpdateCategoryView(BaseView):
     serializer_class = NewsUpdateCategorySerializer
     filterset_class = NewsUpdateCategoryFilter
 
-    @permission_required([CREATE_CATEGORY])
+    @permission_required([CREATE_NEWS_CATEGORY])
     def post(self, request):
         return super().post_(request)
 
-    @permission_required([READ_CATEGORY])
+    @permission_required([READ_NEWS_CATEGORY])
     def get(self, request):
         return super().get_(request)
 
-    @permission_required([UPDATE_CATEGORY])
+    @permission_required([UPDATE_NEWS_CATEGORY])
     def patch(self, request):
         return super().patch_(request)
     
-    @permission_required([DELETE_CATEGORY])
+    @permission_required([DELETE_NEWS_CATEGORY])
     def delete(self, request):
         return super().delete_(request)
 
@@ -80,18 +80,18 @@ class NewsUpdateView(BaseView):
     serializer_class = NewsUpdateSerializer
     filterset_class = NewsUpdateFilter
 
-    @permission_required([CREATE_NEWSUPDATE])
+    @permission_required([CREATE_NEWS_UPDATE])
     def post(self, request):
         return super().post_(request)
 
-    @permission_required([READ_NEWSUPDATE])
+    @permission_required([READ_NEWS_UPDATE])
     def get(self, request):
         return super().get_(request)
 
-    @permission_required([UPDATE_NEWSUPDATE])
+    @permission_required([UPDATE_NEWS_UPDATE])
     def patch(self, request):
         return super().patch_(request)
     
-    @permission_required([DELETE_NEWSUPDATE])
+    @permission_required([DELETE_NEWS_UPDATE])
     def delete(self, request):
         return super().delete_(request)

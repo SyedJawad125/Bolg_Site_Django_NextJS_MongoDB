@@ -1,167 +1,173 @@
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from .controllers import BlogPostController, CampaignController, CategoryController, CommentController, MediaController, NewsletterController, TagController
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from utils.reusable_functions import (create_response, get_first_error, get_tokens_for_user)
+from rest_framework import status
+from utils.response_messages import *
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .serializers import (BlogPostSerializer, CampaignSerializer, CategorySerializer, CommentSerializer, MediaSerializer, NewsletterSerializer, TagSerializer) 
+from .filters import (BlogPostFilter, CampaignFilter, CategoryFilter, CommentFilter, MediaFilter, NewsletterFilter, TagFilter)
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from config.settings import (SIMPLE_JWT, FRONTEND_BASE_URL, PASSWORD_RESET_VALIDITY)
+from django.utils import timezone
+from utils.helpers import generate_token
+from apps.notification.tasks import send_email
+from utils.enums import *
+from django.db import transaction
+from utils.base_api import BaseView
+from collections import defaultdict
 from utils.decorator import permission_required
-
-category_controller = CategoryController()
-tag_controller = TagController()
-blogpost_controller = BlogPostController()
-comment_controller = CommentController()
-media_controller = MediaController()
-newsletter_controller = NewsletterController()
-campaign_controller = CampaignController()
+from utils.permission_enums import *
 
 
-class CategoryViews(ModelViewSet):
-    """Luxury Task ViewSet"""
-    # authentication_classes = [JWTAuthentication]
+class CategoryView(BaseView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = CategorySerializer
+    filterset_class = CategoryFilter
 
-    # permission_classes = [IsAuthenticated]
+    @permission_required([CREATE_CATEGORY])
+    def post(self, request):
+        return super().post_(request)
 
-    @permission_required(['create_category'])
-    def post_category(self, request):
-        return category_controller.create(request)
+    @permission_required([READ_CATEGORY])
+    def get(self, request):
+        return super().get_(request)
 
-    @permission_required(['read_category'])
-    def get_category(self, request):
-        return category_controller.get_category(request)
-
-    @permission_required(['update_category'])
-    def update_category(self, request):
-        return category_controller.update_category(request)
-
-    @permission_required(['delete_category'])
-    def delete_category(self, request):
-        return category_controller.delete_category(request)
+    @permission_required([UPDATE_CATEGORY])
+    def patch(self, request):
+        return super().patch_(request)
+    
+    @permission_required([DELETE_CATEGORY])
+    def delete(self, request):
+        return super().delete_(request)
 
 
-class TagViews(ModelViewSet):
-    """Luxury TaskTag (Label) ViewSet"""
-    # authentication_classes = [JWTAuthentication]
+class TagView(BaseView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = TagSerializer
+    filterset_class = TagFilter
+
+    @permission_required([CREATE_TAG])
+    def post(self, request):
+        return super().post_(request)
+
+    @permission_required([READ_TAG])
+    def get(self, request):
+        return super().get_(request)
+
+    @permission_required([UPDATE_TAG])
+    def patch(self, request):
+        return super().patch_(request)
     
-    @permission_required(['create_tag'])
-    def post_tag(self, request):
-        return tag_controller.create(request)
+    @permission_required([DELETE_TAG])
+    def delete(self, request):
+        return super().delete_(request)
 
-    @permission_required(['read_tag'])
-    def get_tag(self, request):
-        return tag_controller.get_tag(request)
 
-    @permission_required(['update_tag'])
-    def update_tag(self, request):
-        return tag_controller.update_tag(request)
-
-    @permission_required(['delete_tag'])
-    def delete_tag(self, request):
-        return tag_controller.delete_tag(request)
-
-class BlogPostViews(ModelViewSet):
-    """Luxury BlogPost (Label) ViewSet"""
-    # authentication_classes = [JWTAuthentication]
+class BlogPostView(BaseView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = BlogPostSerializer
+    filterset_class = BlogPostFilter
+
+    @permission_required([CREATE_BLOG_POST])
+    def post(self, request):
+        return super().post_(request)
+
+    @permission_required([READ_BLOG_POST])
+    def get(self, request):
+        return super().get_(request)
+
+    @permission_required([UPDATE_BLOG_POST])
+    def patch(self, request):
+        return super().patch_(request)
     
-    @permission_required(['create_blogpost'])
-    def post_blogpost(self, request):
-        return blogpost_controller.create(request)
-
-    @permission_required(['read_blogpost'])
-    def get_blogpost(self, request):
-        return blogpost_controller.get_blogpost(request)
-
-    @permission_required(['update_blogpost'])
-    def update_blogpost(self, request):
-        return blogpost_controller.update_blogpost(request)
-
-    @permission_required(['delete_blogpost'])
-    def delete_blogpost(self, request):
-        return blogpost_controller.delete_blogpost(request)
+    @permission_required([DELETE_BLOG_POST])
+    def delete(self, request):
+        return super().delete_(request)
 
 
-class CommentViews(ModelViewSet):
-    """Luxury Comment (Label) ViewSet"""
-    # authentication_classes = [JWTAuthentication]
+class CommentView(BaseView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = CommentSerializer
+    filterset_class = CommentFilter
+
+    @permission_required([CREATE_COMMENT])
+    def post(self, request):
+        return super().post_(request)
+
+    @permission_required([READ_COMMENT])
+    def get(self, request):
+        return super().get_(request)
+
+    @permission_required([UPDATE_COMMENT])
+    def patch(self, request):
+        return super().patch_(request)
     
-    @permission_required(['create_comment'])
-    def post_comment(self, request):
-        return comment_controller.create(request)
+    @permission_required([DELETE_COMMENT])
+    def delete(self, request):
+        return super().delete_(request)
 
-    @permission_required(['read_comment'])
-    def get_comment(self, request):
-        return comment_controller.get_comment(request)
 
-    @permission_required(['update_comment'])
-    def update_comment(self, request):
-        return comment_controller.update_comment(request)
-
-    @permission_required(['delete_comment'])
-    def delete_comment(self, request):
-        return comment_controller.delete_comment(request)
-    
-
-class MediaViews(ModelViewSet):
-    """Luxury Comment (Label) ViewSet"""
-    # authentication_classes = [JWTAuthentication]
+class MediaView(BaseView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = MediaSerializer
+    filterset_class = MediaFilter
+
+    @permission_required([CREATE_MEDIA])
+    def post(self, request):
+        return super().post_(request)
+
+    @permission_required([READ_MEDIA])
+    def get(self, request):
+        return super().get_(request)
+
+    @permission_required([UPDATE_MEDIA])
+    def patch(self, request):
+        return super().patch_(request)
     
-    @permission_required(['create_media'])
-    def post_media(self, request):
-        return media_controller.create(request)
-
-    @permission_required(['read_media'])
-    def get_media(self, request):
-        return media_controller.get_media(request)
-
-    @permission_required(['update_media'])
-    def update_media(self, request):
-        return media_controller.update_media(request)
-
-    @permission_required(['delete_media'])
-    def delete_media(self, request):
-        return media_controller.delete_media(request)
+    @permission_required([DELETE_MEDIA])
+    def delete(self, request):
+        return super().delete_(request)
 
 
-class NewsletterViews(ModelViewSet):
-    """Luxury Newsletter (Label) ViewSet"""
-    # authentication_classes = [JWTAuthentication]
+class NewsletterView(BaseView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = NewsletterSerializer
+    filterset_class = NewsletterFilter
+
+    @permission_required([CREATE_NEWSLETTER])
+    def post(self, request):
+        return super().post_(request)
+
+    @permission_required([READ_NEWSLETTER])
+    def get(self, request):
+        return super().get_(request)
+
+    @permission_required([UPDATE_NEWSLETTER])
+    def patch(self, request):
+        return super().patch_(request)
     
-    @permission_required(['create_newsletter'])
-    def post_newsletter(self, request):
-        return newsletter_controller.create(request)
+    @permission_required([DELETE_NEWSLETTER])
+    def delete(self, request):
+        return super().delete_(request)
 
-    @permission_required(['read_newsletter'])
-    def get_newsletter(self, request):
-        return newsletter_controller.get_newsletter(request)
 
-    @permission_required(['update_newsletter'])
-    def update_newsletter(self, request):
-        return newsletter_controller.update_newsletter(request)
-
-    @permission_required(['delete_blogpost'])
-    def delete_newsletter(self, request):
-        return newsletter_controller.delete_newsletter(request)
-    
-class CampaignViews(ModelViewSet):
-    """Luxury Campaign (Label) ViewSet"""
-    # authentication_classes = [JWTAuthentication]
+class CampaignView(BaseView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = CampaignSerializer
+    filterset_class = CampaignFilter
+
+    @permission_required([CREATE_CAMPAIGN])
+    def post(self, request):
+        return super().post_(request)
+
+    @permission_required([READ_CAMPAIGN])
+    def get(self, request):
+        return super().get_(request)
+
+    @permission_required([UPDATE_CAMPAIGN])
+    def patch(self, request):
+        return super().patch_(request)
     
-    @permission_required(['create_campaign'])
-    def post_campaign(self, request):
-        return campaign_controller.create(request)
-
-    @permission_required(['read_campaign'])
-    def get_campaign(self, request):
-        return campaign_controller.get_campaign(request)
-
-    @permission_required(['update_campaign'])
-    def update_campaign(self, request):
-        return campaign_controller.update_campaign(request)
-
-    @permission_required(['delete_campaign'])
-    def delete_campaign(self, request):
-        return campaign_controller.delete_campaign(request)
+    @permission_required([DELETE_CAMPAIGN])
+    def delete(self, request):
+        return super().delete_(request)

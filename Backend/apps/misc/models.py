@@ -5,8 +5,6 @@ from utils.validators import *
 
 
 class Tag(TimeUserStamps):
-    # ACTIVE = 'Active'
-    # INACTIVE = 'Inactive'
     status_choices = (
         (ACTIVE, ACTIVE),
         (INACTIVE, INACTIVE)
@@ -105,3 +103,26 @@ class Faq(TimeUserStamps):
     question = models.CharField(max_length=500)
     answer = models.TextField()
     status = models.CharField(choices=status_choices, max_length=10, default=ARCHIVED)
+
+
+class Business(TimeUserStamps):
+    name = models.CharField(max_length=255, default='Bidalot Auctions')
+    website_url = models.URLField(max_length=255, default='http://www.bidalot.com')
+    support_email = models.EmailField(max_length=255, default='support@bidalot.com')
+
+    def __str__(self): return self.name
+
+
+class BusinessImage(TimeUserStamps):
+    def business_image_path(self, filename): 
+        return f'business_images/{self.type}_{self.created_at}.png'
+    
+    type_choices = (
+        (LOGO, LOGO),
+        (HERO_IMAGE, HERO_IMAGE)
+        )
+    business = models.ForeignKey(Business, on_delete=models.PROTECT, related_name="business_images")
+    image = models.ImageField(upload_to=business_image_path)
+    type = models.CharField(max_length=25, choices=type_choices)
+
+    def __str__(self): return f"{self.business.name} - {self.type}"

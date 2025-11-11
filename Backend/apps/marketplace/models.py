@@ -2,6 +2,7 @@ from django.db import models
 from utils.reusable_classes import TimeStamps, TimeUserStamps
 from utils.status_enums import  *
 from utils.enums import *
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class Auction(TimeUserStamps):
@@ -92,8 +93,8 @@ class NewsUpdate(TimeUserStamps):
         (ARCHIVED, 'Archived'),
     )
     title = models.CharField(max_length=255)
-    ### here ckeditor thing
-    description = models.TextField(blank=True, null=True)
+    # description = models.TextField(null=True, blank=True)
+    description = CKEditor5Field('Description', config_name='extends', null=True, blank=True)
     image = models.ImageField(upload_to=news_update_image_path, blank=True, null=True)
     category = models.ForeignKey(
         NewsUpdateCategory,

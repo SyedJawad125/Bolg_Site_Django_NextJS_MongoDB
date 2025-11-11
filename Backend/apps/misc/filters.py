@@ -1,5 +1,5 @@
 import django_filters as filters
-from .models import Tag, Country, Faq
+from .models import Business, Tag, Country, Faq
 from django.db.models import Q
 
 
@@ -41,4 +41,23 @@ class FaqFilter(filters.FilterSet):
             Q(question__icontains=value) |
             Q(answer__icontains=value) |
             Q(status__icontains=value)
+        )
+
+
+class BusinessFilter(filters.FilterSet):
+    name = filters.CharFilter(field_name='name', lookup_expr='icontains')
+    website_url = filters.CharFilter(field_name='website_url', lookup_expr='icontains')
+    support_email = filters.CharFilter(field_name='support_email', lookup_expr='icontains')
+    search = filters.CharFilter(method='filter_search')
+
+    class Meta:
+        model = Business
+        fields = [ 'name', 'website_url', 'support_email']
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(name__icontains=value) |
+            Q(website_url__icontains=value) |
+            Q(support_email__icontains=value) |
+            Q(business_type__icontains=value)
         )

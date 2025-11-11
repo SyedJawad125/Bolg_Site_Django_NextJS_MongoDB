@@ -3,23 +3,22 @@ from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
-import uuid
+from utils.enums import *
+from utils.reusable_classes import TimeUserStamps
+from django_ckeditor_5.fields import CKEditor5Field
 
 
-class Category(models.Model):
+class Category(TimeUserStamps):
     """Blog post categories with hierarchical structure"""
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True, blank=True)
-    description = models.TextField(blank=True, null=True)
+    description = CKEditor5Field(config_name='extends',blank=True, null=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories')
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     meta_title = models.CharField(max_length=160, blank=True)
     meta_description = models.CharField(max_length=320, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='category_created_by', null=True, blank=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='category_updated_by', null=True, blank=True)
+    
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -34,25 +33,13 @@ class Category(models.Model):
         return self.name
 
 
-
-
-class Tag(models.Model):
+class Tag(TimeUserStamps):
     """Tags for blog posts"""
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=50, unique=True, blank=True)
     color = models.CharField(max_length=7, default='#007bff', help_text="Hex color code")
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name='tag_created_by', null=True, blank=True
-    )
-    updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name='tag_updated_by', null=True, blank=True
-    )
-
+    
     class Meta:
         ordering = ['name']
 
@@ -65,65 +52,48 @@ class Tag(models.Model):
         return self.name
 
 
-class BlogPost(models.Model):
+class BlogPost(TimeUserStamps):
     """Main blog post model with rich content"""
 
     STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('published', 'Published'),
-        ('archived', 'Archived'),
-        ('scheduled', 'Scheduled'),
-    ]
-
+        (DRAFT, DRAFT),
+        (PUBLISHED, PUBLISHED),
+        (ARCHIVED, ARCHIVED),
+        (SCHEDULED, SCHEDULED),
+        ]
     VISIBILITY_CHOICES = [
-        ('public', 'Public'),
-        ('private', 'Private'),
-        ('password', 'Password Protected'),
-        ('members', 'Members Only'),
-    ]
+        (PUBLIC, PUBLIC),
+        (PRIVATE, PRIVATE),
+        (PASSWORD, PASSWORD),
+        (MEMBERS, MEMBERS),
+        ]
 
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=250, unique=True, blank=True)
     subtitle = models.CharField(max_length=300, blank=True)
-    excerpt = models.TextField(max_length=500, blank=True, help_text="Short description for previews")
-    content = models.TextField()
-
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-                                   related_name='blogpost_created_by', null=True, blank=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-                                   related_name='blogpost_updated_by', null=True, blank=True)
-
+    content = CKEditor5Field(config_name='extends')  # Using CKEditor 5
+    excerpt = CKEditor5Field(config_name='default', blank=True)
     # Relationships
     author = models.CharField(max_length=100, blank=True)  # removed unique=True, because you’ll have many posts per author
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True)
     tags = models.ManyToManyField(Tag, blank=True)
-
     # Media
     featured_image = models.ImageField(upload_to='blog/featured/', blank=True, null=True)
     featured_image_alt = models.CharField(max_length=200, blank=True)
-
     # Status and Visibility
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default='public')
     password = models.CharField(max_length=100, blank=True, help_text="Required if visibility is password protected")
-
     # SEO
     meta_title = models.CharField(max_length=160, blank=True)
     meta_description = models.CharField(max_length=320, blank=True)
     canonical_url = models.URLField(blank=True, null=True)
-
     # Engagement
     view_count = models.PositiveIntegerField(default=0)
     reading_time = models.PositiveIntegerField(default=0, help_text="Estimated reading time in minutes")
-
     # Scheduling
     published_at = models.DateTimeField(blank=True, null=True)
     scheduled_at = models.DateTimeField(blank=True, null=True)
-
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
     # Features
     is_featured = models.BooleanField(default=False)
     allow_comments = models.BooleanField(default=True)
@@ -146,16 +116,15 @@ class BlogPost(models.Model):
         return self.title
 
 
-
-class Comment(models.Model):
+class Comment(TimeUserStamps):
     """Comments system with moderation"""
     
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('spam', 'Spam'),
-    ]
+        (PENDING, PENDING),
+        (APPROVED, APPROVED),
+        (REJECTED, REJECTED),
+        (SPAM, SPAM),
+        ]
 
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
@@ -166,20 +135,13 @@ class Comment(models.Model):
     guest_name = models.CharField(max_length=100, blank=True)
     guest_email = models.EmailField(blank=True)
     guest_website = models.URLField(blank=True)
-    
     content = models.TextField(max_length=1000)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     ip_address = models.GenericIPAddressField(protocol='both', null=True, blank=True)
     user_agent = models.TextField(blank=True)
-    
     # Moderation
     moderated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='moderated_comments')
     moderation_note = models.TextField(blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='comment_created_by', null=True, blank=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comment_updated_by', null=True, blank=True)
     
     class Meta:
         ordering = ['-created_at']
@@ -189,17 +151,15 @@ class Comment(models.Model):
         return f"Comment by {author} on {self.post.title}"
 
 
-class Media(models.Model):
+class Media(TimeUserStamps):
     """Media library for managing images, videos, documents"""
-    
     TYPE_CHOICES = [
-        ('image', 'Image'),
-        ('video', 'Video'),
-        ('audio', 'Audio'),
-        ('document', 'Document'),
-        ('other', 'Other'),
-    ]
-
+            (IMAGE, IMAGE),
+            (VIDEO, VIDEO),
+            (AUDIO, AUDIO),
+            (DOCUMENT, DOCUMENT),
+            (OTHER, OTHER),
+            ]
     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -207,24 +167,15 @@ class Media(models.Model):
     file_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     file_size = models.PositiveIntegerField(help_text="File size in bytes")
     mime_type = models.CharField(max_length=100)
-    
     # Image specific fields
     width = models.PositiveIntegerField(null=True, blank=True)
     height = models.PositiveIntegerField(null=True, blank=True)
-    
     # SEO
     alt_text = models.CharField(max_length=200, blank=True)
     caption = models.TextField(blank=True)
-    
     # Organization
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     is_public = models.BooleanField(default=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='media_created_by', null=True, blank=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='media_updated_by', null=True, blank=True)
-
     class Meta:
         ordering = ['-created_at']
 
@@ -232,83 +183,66 @@ class Media(models.Model):
         return self.title
 
 
-class Newsletter(models.Model):
+class Newsletter(TimeUserStamps):
     """Newsletter subscription management"""
-    
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('inactive', 'Inactive'),
-        ('unsubscribed', 'Unsubscribed'),
-        ('bounced', 'Bounced'),
-    ]
-    
+        (ACTIVE, ACTIVE),
+        (INACTIVE, INACTIVE),
+        (UNSUBSCRIBED, UNSUBSCRIBED),
+        (BOUNCED, BOUNCED),
+        ]
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
-    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')   
     # Preferences
-    frequency = models.CharField(max_length=20, choices=[
-        ('daily', 'Daily'),
-        ('weekly', 'Weekly'),
-        ('monthly', 'Monthly'),
-    ], default='weekly')
-    
+    FREQUENCY_CHOICES = [
+        (DAILY, DAILY),
+        (WEEKLY, WEEKLY),
+        (MONTHLY, MONTHLY),
+        ]
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES, default=WEEKLY)
     # Categories they're interested in
     interested_categories = models.ManyToManyField(Category, blank=True)
-    
     # Tracking
     subscription_source = models.CharField(max_length=100, blank=True, help_text="Where they subscribed from")
-    
     # FIX: Add protocol parameter
     ip_address = models.GenericIPAddressField(protocol='both', null=True, blank=True)
-    
     confirmed_at = models.DateTimeField(null=True, blank=True)
     unsubscribed_at = models.DateTimeField(null=True, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='newsletter_created_by', null=True, blank=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='newsletter_updated_by', null=True, blank=True)
     
     def __str__(self):
         name = f"{self.first_name} {self.last_name}".strip() or "Anonymous"
         return f"{name} ({self.email})"
 
 
-class Campaign(models.Model):
+class Campaign(TimeUserStamps):
     """Email campaign management"""
-    
     STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('scheduled', 'Scheduled'),
-        ('sending', 'Sending'),
-        ('sent', 'Sent'),
-        ('paused', 'Paused'),
-        ('cancelled', 'Cancelled'),
-    ]
-
+        (DRAFT, DRAFT),
+        (SCHEDULED, SCHEDULED),
+        (SENDING, SENDING),
+        (SENT, SENT),
+        (PAUSED, PAUSED),
+        (CANCELLED, CANCELLED),
+        ]
     TYPE_CHOICES = [
-        ('newsletter', 'Newsletter'),
-        ('promotion', 'Promotion'),
-        ('announcement', 'Announcement'),
-        ('welcome', 'Welcome Series'),
-    ]
-
+        (NEWSLETTER, NEWSLETTER),
+        (PROMOTION, PROMOTION),
+        (ANNOUNCEMENT, ANNOUNCEMENT),
+        (WELCOME, WELCOME),
+        ]
     name = models.CharField(max_length=200)
     subject = models.CharField(max_length=200)
     content = models.TextField()
     campaign_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='newsletter')
-    
     # Targeting
     target_categories = models.ManyToManyField(Category, blank=True)
     target_all_subscribers = models.BooleanField(default=True)
-    
     # Scheduling
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     scheduled_at = models.DateTimeField(null=True, blank=True)
     sent_at = models.DateTimeField(null=True, blank=True)
-    
     # Statistics
     recipients_count = models.PositiveIntegerField(default=0)
     delivered_count = models.PositiveIntegerField(default=0)
@@ -317,12 +251,6 @@ class Campaign(models.Model):
     bounced_count = models.PositiveIntegerField(default=0)
     unsubscribed_count = models.PositiveIntegerField(default=0)
     
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='campaign_created_by', null=True, blank=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='campaign_updated_by', null=True, blank=True)
-    
-
     def __str__(self):
         return self.name
 

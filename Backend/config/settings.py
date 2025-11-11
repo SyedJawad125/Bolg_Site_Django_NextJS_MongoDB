@@ -48,10 +48,36 @@ FRONTEND_EMAIL_LINK = f"{FRONTEND_BASE_URL}/verify-link"
 
 # Application definition
 
+# INSTALLED_APPS = [
+#     'django.contrib.admin',
+#     'django.contrib.auth',
+#     'django.contrib.contenttypes',
+#     'django.contrib.sessions',
+#     'django.contrib.messages',
+#     'django.contrib.staticfiles',
+
+#     'rest_framework',
+#     'rest_framework_simplejwt.token_blacklist',
+#     'django_celery_results',
+
+#     'corsheaders',
+#     'apps.users',
+#     'apps.myapp',
+#     'apps.notification',
+#     # 'apps.marketplace',
+#     # 'apps.misc',
+
+#     "drf_spectacular",
+#     "drf_spectacular_sidecar",
+#     "django_ckeditor_5",
+
+# ]
+
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
+    'django.contrib.contenttypes',  # ← MUST be first
+    'django.contrib.auth',          # ← Before admin
+    'apps.users',                   # ← Your custom user model BEFORE admin
+    'django.contrib.admin',         # ← After your users app
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -60,13 +86,15 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'django_celery_results',
 
-    'apps.users',
+    'corsheaders',
+    'apps.myapp',
     'apps.notification',
-    'apps.marketplace',
-    'apps.misc',
+    # 'apps.marketplace',
+    # 'apps.misc',
 
     "drf_spectacular",
     "drf_spectacular_sidecar",
+    "django_ckeditor_5",
 ]
 
 MIDDLEWARE = [
@@ -107,17 +135,31 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    },
-    # 'default': {
-    #         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #         'NAME': os.environ.get('POSTGRES_DB'),
-    #         'USER': os.environ.get('POSTGRES_USER'),
-    #         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-    #         'HOST': os.environ.get('POSTGRES_HOST'),
-    #         'PORT': os.environ.get('POSTGRES_PORT'),
-    #     },
+    }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.environ.get('POSTGRES_DB'),
+#         'USER': os.environ.get('POSTGRES_USER'),
+#         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+#         'HOST': os.environ.get('POSTGRES_HOST'),
+#         'PORT': os.environ.get('POSTGRES_PORT'),
+#     }
+# }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'Django_Blogs',
+#         'USER':'postgres',
+#         'PASSWORD':'admin',
+#         'HOST': 'localhost',           # Database host
+#         'PORT': '5432',                # Database port
+        
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -243,4 +285,77 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_PATH': '/',  # The path of the auth cookie.
     'AUTH_COOKIE_SAMESITE': 'Lax',  # Whether to set the flag restricting cookie leaks on cross-site requests.
                                     # This can be 'Lax', 'Strict', or None to disable the flag.
+}
+
+# settings.py
+CKEDITOR_5_CONFIGS = {
+    'default': {
+        'toolbar': ['heading', '|', 'bold', 'italic', 'link',
+                    'bulletedList', 'numberedList', 'blockQuote', 'imageUpload'],
+    },
+    'extends': {
+        'blockToolbar': [
+            'paragraph', 'heading1', 'heading2', 'heading3',
+            '|',
+            'bulletedList', 'numberedList',
+            '|',
+            'blockQuote',
+            'imageUpload'  # Added image upload to block toolbar
+        ],
+        'toolbar': [
+            'heading', '|', 
+            'outdent', 'indent', '|', 
+            'bold', 'italic', 'link', 'underline', 'strikethrough',
+            'code', 'subscript', 'superscript', 'highlight', '|', 
+            'codeBlock', 'sourceEditing', 'insertImage',
+            'bulletedList', 'numberedList', 'todoList', '|', 
+            'blockQuote', 'imageUpload', '|',
+            'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 
+            'mediaEmbed', 'removeFormat', 'insertTable',
+        ],
+        'image': {
+            'toolbar': [
+                'imageTextAlternative', '|', 
+                'imageStyle:alignLeft', 'imageStyle:alignRight', 
+                'imageStyle:alignCenter', 'imageStyle:side', '|',
+                'toggleImageCaption', 'imageTextAlternative'  # Added more options
+            ],
+            'styles': [
+                'full',
+                'side',
+                'alignLeft',
+                'alignRight',
+                'alignCenter',
+            ]
+        },
+        'table': {
+            'contentToolbar': [
+                'tableColumn', 'tableRow', 'mergeTableCells',
+                'tableProperties', 'tableCellProperties'
+            ],
+            'tableProperties': {
+                'borderColors': 'custom',
+                'backgroundColors': 'custom'
+            },
+            'tableCellProperties': {
+                'borderColors': 'custom',
+                'backgroundColors': 'custom'
+            }
+        },
+        'heading': {
+            'options': [
+                {'model': 'paragraph', 'title': 'Paragraph', 'class': 'ck-heading_paragraph'},
+                {'model': 'heading1', 'view': 'h1', 'title': 'Heading 1', 'class': 'ck-heading_heading1'},
+                {'model': 'heading2', 'view': 'h2', 'title': 'Heading 2', 'class': 'ck-heading_heading2'},
+                {'model': 'heading3', 'view': 'h3', 'title': 'Heading 3', 'class': 'ck-heading_heading3'},
+                {'model': 'heading4', 'view': 'h4', 'title': 'Heading 4', 'class': 'ck-heading_heading4'}  # Added H4
+            ]
+        },
+        'language': 'en',  # Explicitly set language
+        'htmlSupport': {  # Added HTML support for better compatibility
+            'allow': [
+                {'name': '/.*/', 'attributes': True, 'classes': True, 'styles': True}
+            ]
+        }
+    }
 }
