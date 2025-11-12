@@ -61,7 +61,7 @@ const ChangePassword = () => {
     };
 
     try {
-      const response = await AxiosInstance.post('/user/change-password', payload, {
+      const response = await AxiosInstance.post('/api/user/v1/reset/password/', payload, {
         headers: {
           'Content-Type': 'application/json',
         },

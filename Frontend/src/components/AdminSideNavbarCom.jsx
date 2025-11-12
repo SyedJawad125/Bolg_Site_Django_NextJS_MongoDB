@@ -844,7 +844,7 @@ const AdminSideNavbarCom = () => {
       id: 'images',
       label: 'Images',
       icon: Image,
-      path: '/images',
+      path: '/imagespage',
       roles: ['admin', 'editor'],
       color: 'red'
     },

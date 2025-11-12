@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import AdminSideNavbarCom from "@/components/AdminSideNavbarCom";
-import EmployeeCom from "@/components/EmployeeCom";
+import ImagesCom from "@/components/ImagesCom";
 
 const AdminDashboard = () => {
   return (
@@ -14,7 +14,7 @@ const AdminDashboard = () => {
       {/* Main Content - Takes remaining space */}
       <div className="flex-1 w-[82%] bg-black overflow-auto -ml-6 mr" >
         <div className="w-full h-full p-6">
-          <EmployeeCom />
+          <ImagesCom />
         </div>
       </div>
     </div>
