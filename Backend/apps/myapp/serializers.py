@@ -380,6 +380,17 @@ class CategorySerializer(serializers.ModelSerializer):
         return attrs
     
     def to_representation(self, instance):
+        """Customize output representation with desired field order"""
+        # Check if the instance was just soft-deleted (deleted flag is True)
+        # This indicates we're in a delete response
+        if instance.deleted:
+            return {
+                'id': instance.id,
+                'name': instance.name,
+                'message': f'Category "{instance.name}" has been deleted successfully'
+            }
+        
+        # Normal representation for other operations (GET, POST, PUT)
         data = super().to_representation(instance)
         
         # Handle image URL
@@ -395,6 +406,7 @@ class CategorySerializer(serializers.ModelSerializer):
             data['updated_at'] = data['updated_at'].replace('T', ' ').split('.')[0]
         
         return data
+    
 # ======================= TAG SERIALIZERS =======================
 
 class TagListingSerializer(serializers.ModelSerializer):

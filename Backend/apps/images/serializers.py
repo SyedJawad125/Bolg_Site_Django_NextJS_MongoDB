@@ -103,6 +103,16 @@ class CategoriesSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         """Customize output representation with desired field order"""
+        # Check if the instance was just soft-deleted (deleted flag is True)
+        # This indicates we're in a delete response
+        if instance.deleted:
+            return {
+                'id': instance.id,
+                'name': instance.category,
+                'message': f'Category "{instance.category}" has been deleted successfully'
+            }
+        
+        # Normal representation for other operations (GET, POST, PUT)
         data = super().to_representation(instance)
         
         # Remove deleted field from output
@@ -238,6 +248,16 @@ class ImagesSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         """Customize output representation with desired field order"""
+        # Check if the instance was just soft-deleted (deleted flag is True)
+        # This indicates we're in a delete response
+        if instance.deleted:
+            return {
+                'id': instance.id,
+                'name': instance.name,
+                'message': f'Image \"{instance.name}\" has been deleted successfully'
+            }
+        
+        # Normal representation for other operations (GET, POST, PUT)
         data = super().to_representation(instance)
         
         # Handle image URL with full backend URL
@@ -253,7 +273,6 @@ class ImagesSerializer(serializers.ModelSerializer):
             data['updated_at'] = data['updated_at'].replace('T', ' ').split('.')[0]
         
         # Create a new ordered dictionary with the desired field order
-        # Include all fields even if they are None
         ordered_data = {
             'id': data.get('id'),
             'category_name': data.get('category_name'),
@@ -264,12 +283,18 @@ class ImagesSerializer(serializers.ModelSerializer):
             'imagescategory': data.get('imagescategory'),
             'category_details': data.get('category_details'),
             'created_by': data.get('created_by'),
-            'updated_by': data.get('updated_by'),  # This will now appear even if None
+            'updated_by': data.get('updated_by'),
             'created_at': data.get('created_at'),
             'updated_at': data.get('updated_at'),
         }
-    
+        
+        # Add any remaining fields that weren't in our ordered list
+        for key, value in data.items():
+            if key not in ordered_data:
+                ordered_data[key] = value
+        
         return ordered_data
+    
 class PublicImagesSerializer(serializers.ModelSerializer):
     """Public-facing serializer with limited fields for anonymous users"""
     category_name = serializers.CharField(source='imagescategory.category', read_only=True)
