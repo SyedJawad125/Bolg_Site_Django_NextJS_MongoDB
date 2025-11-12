@@ -44,10 +44,10 @@ def populate():
 
     # ---- Admin User ----
     try:
-        admin = User.objects.get(username='admin@yopmail.com')
+        admin = User.objects.get(username='syedjawadali92@gmail.com')
     except User.DoesNotExist:
         admin = User.objects.create(
-            username="admin@yopmail.com",
+            username="syedjawadali92@gmail.com",
             password=make_password("Admin@1234"),
             role=role,
             type='Employee',
@@ -59,8 +59,7 @@ def populate():
 
     # ---- Other Users (Optional) ----
     default_users = [
-        ('haider@yopmail.com', 'Haider', 'Ali'),
-        ('rizwan@yopmail.com', 'Rizwan', 'Khattak'),
+        ('nicenick1992@gmail.com', 'Jawad', 'Ali'),
     ]
 
     for username, first, last in default_users:

@@ -85,3 +85,13 @@ CREATE_CAMPAIGN = 'create_campaign'
 READ_CAMPAIGN = 'read_campaign'
 UPDATE_CAMPAIGN = 'update_campaign'
 DELETE_CAMPAIGN = 'delete_campaign'
+
+CREATE_IMAGE = 'create_image'
+READ_IMAGE = 'read_image'
+UPDATE_IMAGE = 'update_image'
+DELETE_IMAGE = 'delete_image'
+
+CREATE_CATEGORY = 'create_category'
+READ_CATEGORY = 'read_category'
+UPDATE_CATEGORY = 'update_category'
+DELETE_CATEGORY = 'delete_category'

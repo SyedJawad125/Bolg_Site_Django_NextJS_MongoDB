@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'apps.myapp',
     'apps.notification',
+    'apps.images',
 
     "drf_spectacular",
     "drf_spectacular_sidecar",

@@ -98,7 +98,25 @@ permissions = [
     Permission(name='Delete Campaign', code_name='delete_campaign', module_name='Campaign', module_label='Campaign Management',
             description='User can delete campaign'),
 
-    
+    # ---------- Image ----------
+    Permission(name='Create Image', code_name='create_image', module_name='Image', module_label='Image Management',
+            description='User can create Image'),
+    Permission(name='Read Image', code_name='read_image', module_name='Image', module_label='Image Management',
+            description='User can read Image'),
+    Permission(name='Update Image', code_name='update_image', module_name='Image', module_label='Image Management',
+            description='User can update Image'),
+    Permission(name='Delete Image', code_name='delete_image', module_name='Image', module_label='Image Management',
+            description='User can delete Image'),
+
+        # ---------- Category ----------
+    Permission(name='Create Category', code_name='create_category', module_name='Category', module_label='Category Management',
+            description='User can create Category'),
+    Permission(name='Read Category', code_name='read_category', module_name='Category', module_label='Category Management',
+            description='User can read Category'),
+    Permission(name='Update Category', code_name='update_category', module_name='Category', module_label='Category Management',
+            description='User can update Category'),
+    Permission(name='Delete Category', code_name='delete_category', module_name='Category', module_label='Category Management',
+            description='User can delete Category'),
 ]
 
 
