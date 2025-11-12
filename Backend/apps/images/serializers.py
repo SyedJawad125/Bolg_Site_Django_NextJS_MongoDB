@@ -14,17 +14,22 @@ class CategoriesListingSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Categories
-        fields = ['id', 'category', 'slug', 'is_active', 'images_count']
+        fields = ['id', 'category', 'images_count']  # Remove 'slug', 'is_active'
+        # OR if you want to include all safe fields:
+        # fields = ['id', 'category', 'description', 'created_at', 'updated_at', 'images_count']
     
     def get_images_count(self, obj):
         """Get count of active images in this category"""
-        if obj.deleted:
+        if hasattr(obj, 'deleted') and obj.deleted:
             return 0
-        return obj.images_set.filter(deleted=False, is_active=True).count()
-
+        
+        # Fix the query to match your actual relationships
+        # Since your Images model has 'imagescategory' ForeignKey, use the related_name
+        if hasattr(obj, 'categoriesimages'):  # This matches your related_name
+            return obj.categoriesimages.filter(deleted=False).count()
+        return 0
 
 class CategoriesSerializer(serializers.ModelSerializer):
-    """Full category serializer with validations and nested data"""
     images_count = serializers.SerializerMethodField()
     created_by = serializers.SerializerMethodField()
     updated_by = serializers.SerializerMethodField()
@@ -47,10 +52,6 @@ class CategoriesSerializer(serializers.ModelSerializer):
             return 0
         
         # Check what the actual related name is for images
-        # Common possibilities: images, image_set, category_images, etc.
-        # You need to check your Image model's ForeignKey to Categories
-        
-        # Try these common patterns, use the correct one:
         if hasattr(obj, 'images') and obj.images.filter(deleted=False, is_active=True).exists():
             return obj.images.filter(deleted=False, is_active=True).count()
         elif hasattr(obj, 'image_set') and obj.image_set.filter(deleted=False, is_active=True).exists():
@@ -101,19 +102,35 @@ class CategoriesSerializer(serializers.ModelSerializer):
         return attrs
     
     def to_representation(self, instance):
-        """Customize output representation"""
+        """Customize output representation with desired field order"""
         data = super().to_representation(instance)
         
         # Remove deleted field from output
         data.pop('deleted', None)
         
-        # Format datetime fields if needed
-        if isinstance(data.get('created_at'), str):
-            data['created_at'] = data['created_at'].replace('T', ' ').split('.')[0]
-        if isinstance(data.get('updated_at'), str):
-            data['updated_at'] = data['updated_at'].replace('T', ' ').split('.')[0]
+        # Create a new ordered dictionary with the desired field order
+        ordered_data = {
+            'id': data.get('id'),
+            'category': data.get('category'),  # Category comes right after ID
+            'images_count': data.get('images_count'),
+            'created_by': data.get('created_by'),
+            'updated_by': data.get('updated_by'),
+            'created_at': data.get('created_at'),
+            'updated_at': data.get('updated_at'),
+        }
         
-        return data
+        # Add any remaining fields that weren't in our ordered list
+        for key, value in data.items():
+            if key not in ordered_data:
+                ordered_data[key] = value
+        
+        # Format datetime fields if needed
+        if isinstance(ordered_data.get('created_at'), str):
+            ordered_data['created_at'] = ordered_data['created_at'].replace('T', ' ').split('.')[0]
+        if isinstance(ordered_data.get('updated_at'), str):
+            ordered_data['updated_at'] = ordered_data['updated_at'].replace('T', ' ').split('.')[0]
+        
+        return ordered_data
 
 class TextBoxCategoriesSerializer(serializers.ModelSerializer):
     """Lightweight serializer for textbox/autocomplete components"""
@@ -182,10 +199,10 @@ class ImagesSerializer(serializers.ModelSerializer):
             return CategoriesListingSerializer(obj.imagescategory).data
         return None
     
-    def validate_title(self, value):
-        """Validate image title"""
+    def validate_name(self, value):
+        """Validate image name"""
         if value and len(value.strip()) < 2:
-            raise serializers.ValidationError("Title must be at least 2 characters long")
+            raise serializers.ValidationError("Name must be at least 2 characters long")
         return value.strip() if value else None
     
     def validate_image(self, value):
@@ -210,25 +227,17 @@ class ImagesSerializer(serializers.ModelSerializer):
         return value
     
     def validate_imagescategory(self, value):
-        """Validate category is active"""
-        if value and (value.deleted or not value.is_active):
-            raise serializers.ValidationError("Selected category is not active")
+        """Validate category is not deleted"""
+        if value and value.deleted:
+            raise serializers.ValidationError("Selected category is not available")
         return value
     
     def validate(self, attrs):
         """Cross-field validation"""
-        # Ensure alt_text is provided for accessibility
-        if 'image' in attrs and not attrs.get('alt_text'):
-            # Auto-generate alt text from title or filename if not provided
-            if attrs.get('title'):
-                attrs['alt_text'] = attrs['title']
-            else:
-                attrs['alt_text'] = 'Image'
-        
         return attrs
     
     def to_representation(self, instance):
-        """Customize output representation"""
+        """Customize output representation with desired field order"""
         data = super().to_representation(instance)
         
         # Handle image URL with full backend URL
@@ -243,9 +252,24 @@ class ImagesSerializer(serializers.ModelSerializer):
         if isinstance(data.get('updated_at'), str):
             data['updated_at'] = data['updated_at'].replace('T', ' ').split('.')[0]
         
-        return data
-
-
+        # Create a new ordered dictionary with the desired field order
+        # Include all fields even if they are None
+        ordered_data = {
+            'id': data.get('id'),
+            'category_name': data.get('category_name'),
+            'name': data.get('name'),
+            'description': data.get('description'),
+            'bulletsdescription': data.get('bulletsdescription'),
+            'image': data.get('image'),
+            'imagescategory': data.get('imagescategory'),
+            'category_details': data.get('category_details'),
+            'created_by': data.get('created_by'),
+            'updated_by': data.get('updated_by'),  # This will now appear even if None
+            'created_at': data.get('created_at'),
+            'updated_at': data.get('updated_at'),
+        }
+    
+        return ordered_data
 class PublicImagesSerializer(serializers.ModelSerializer):
     """Public-facing serializer with limited fields for anonymous users"""
     category_name = serializers.CharField(source='imagescategory.category', read_only=True)
