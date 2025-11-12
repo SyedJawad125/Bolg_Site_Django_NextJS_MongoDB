@@ -384,7 +384,7 @@ const BlogPostCom = () => {
       if (statusFilter) params.status = statusFilter;
       if (categoryFilter) params.category = categoryFilter;
 
-      const res = await AxiosInstance.get('/myapp/blogpost', { params });
+      const res = await AxiosInstance.get('/api/myapp/v1/blog/posts/', { params });
 
       if (res && res.data) {
         const responseData = res.data.data || res.data;
