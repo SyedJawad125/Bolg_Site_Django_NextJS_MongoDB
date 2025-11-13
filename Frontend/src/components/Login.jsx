@@ -588,7 +588,7 @@ const Login = () => {
               Don't have an account?{' '}
             </span>
             <a 
-              href="/register" 
+              href="/signup" 
               className="text-sm text-cyan-300 hover:text-cyan-200 transition-colors duration-300 font-medium hover:underline"
             >
               Create account

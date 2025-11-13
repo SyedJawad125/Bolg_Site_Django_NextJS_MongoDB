@@ -25,7 +25,7 @@ const EmployeeCom = () => {
   const receiveData = async () => {
     setLoading(true);
     try {
-      const res = await AxiosInstance.get('/ecommerce/employee', {
+      const res = await AxiosInstance.get('/api/user/v1/employee/', {
         params: {
           limit: recordsPerPage,
           offset: (currentPage - 1) * recordsPerPage,
@@ -54,7 +54,7 @@ const EmployeeCom = () => {
     }
 
     try {
-      const res = await AxiosInstance.delete(`/ecommerce/employee?id=${id}`);
+      const res = await AxiosInstance.delete(`/api/user/v1/employee/?id=${id}`);
       if (res) {
         toast.success('Employee deleted successfully!');
         setCurrentPage(1);

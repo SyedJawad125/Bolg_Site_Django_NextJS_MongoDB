@@ -11,7 +11,7 @@ urlpatterns = [
     path('v1/verify/link/', VerifyLinkView.as_view()),
     path('v1/reset/password/', ResetPasswordView.as_view()),
 
-    path('v1/', EmployeeView.as_view()),
+    path('v1/employee/', EmployeeView.as_view()),
     path('v1/toggle/', EmployeeToggleView.as_view()),
 
     path('v1/permission/', PermissionView.as_view()),
