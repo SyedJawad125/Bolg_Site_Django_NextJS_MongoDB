@@ -372,41 +372,84 @@ const BlogPostCom = () => {
     fetchBlogPosts();
   }, [currentPage, statusFilter, categoryFilter]);
 
-  const fetchBlogPosts = async () => {
-    setLoading(true);
-    try {
-      const params = {
-        page: currentPage,
-        limit: recordsPerPage,
-        offset: (currentPage - 1) * recordsPerPage,
-      };
+  // const fetchBlogPosts = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const params = {
+  //       page: currentPage,
+  //       limit: recordsPerPage,
+  //       offset: (currentPage - 1) * recordsPerPage,
+  //     };
 
-      if (statusFilter) params.status = statusFilter;
-      if (categoryFilter) params.category = categoryFilter;
+  //     if (statusFilter) params.status = statusFilter;
+  //     if (categoryFilter) params.category = categoryFilter;
 
-      const res = await AxiosInstance.get('/api/myapp/v1/blog/posts/', { params });
+  //     const res = await AxiosInstance.get('/api/myapp/v1/blog/posts/', { params });
 
-      if (res && res.data) {
-        const responseData = res.data.data || res.data;
-        const posts = responseData.categories || [];
-        setBlogPosts(posts);
-        setTotalPages(responseData.total_pages || 1);
-        setTotalCount(responseData.count || 0);
-        setData(res.data);
+  //     if (res && res.data) {
+  //       const responseData = res.data.data || res.data;
+  //       const posts = responseData.categories || [];
+  //       setBlogPosts(posts);
+  //       setTotalPages(responseData.total_pages || 1);
+  //       setTotalCount(responseData.count || 0);
+  //       setData(res.data);
         
-        if (posts.length === 0) {
-          toast.info('No blog posts found');
-        }
-      } else {
-        toast.error('Failed to load blog posts');
+  //       if (posts.length === 0) {
+  //         toast.info('No blog posts found');
+  //       }
+  //     } else {
+  //       toast.error('Failed to load blog posts');
+  //     }
+  //   } catch (error) {
+  //     const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+  //     toast.error('Error fetching blog posts: ' + errorMessage);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const fetchBlogPosts = async () => {
+  setLoading(true);
+  let toastDisplayed = false; // Flag to track if toast has been shown
+  
+  try {
+    const params = {
+      page: currentPage,
+      limit: recordsPerPage,
+      offset: (currentPage - 1) * recordsPerPage,
+    };
+
+    if (statusFilter) params.status = statusFilter;
+    if (categoryFilter) params.category = categoryFilter;
+
+    const res = await AxiosInstance.get('/api/myapp/v1/blog/posts/', { params });
+
+    if (res && res.data) {
+      const responseData = res.data.data || res.data;
+      const posts = responseData.categories || [];
+      setBlogPosts(posts);
+      setTotalPages(responseData.total_pages || 1);
+      setTotalCount(responseData.count || 0);
+      setData(res.data);
+      
+      if (posts.length === 0 && !toastDisplayed) {
+        toast.info('No blog posts found');
+        toastDisplayed = true;
       }
-    } catch (error) {
+    } else if (!toastDisplayed) {
+      toast.error('Failed to load blog posts');
+      toastDisplayed = true;
+    }
+  } catch (error) {
+    if (!toastDisplayed) {
       const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
       toast.error('Error fetching blog posts: ' + errorMessage);
-    } finally {
-      setLoading(false);
+      toastDisplayed = true;
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const deleteBlogPost = async (id) => {
     if (!window.confirm('Are you sure you want to delete this blog post?')) {

@@ -477,7 +477,7 @@ const ImagesCom = () => {
                   >
                     <div className="aspect-square relative overflow-hidden">
                       <Image
-                        src={`http://localhost:8000${item.image}`}
+                        src={item.image}
                         alt={item.name}
                         width={400}
                         height={400}
