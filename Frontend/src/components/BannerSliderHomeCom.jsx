@@ -1,38 +1,31 @@
 'use client';
 import React from 'react';
-import Image from 'next/image';
 import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 
-import banner1 from '../../public/images/banner1.jpg';
-import banner2 from '../../public/images/banner2.jpg';
-import banner3 from '../../public/images/banner3.jpg';
-import banner4 from '../../public/images/banner4.jpg';
-import banner5 from '../../public/images/banner5.jpg';
-
 const banners = [
   {
-    src: banner1,
+    src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80',
     title: 'The Art of Modern Leadership',
     subtitle: 'Explore insights, ideas, and innovations shaping the workplace of tomorrow.',
   },
   {
-    src: banner2,
+    src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80',
     title: 'Redefining Team Culture',
     subtitle: 'Inspiring stories of collaboration, growth, and purpose.',
   },
   {
-    src: banner3,
+    src: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1200&q=80',
     title: 'Behind Every Success Story',
     subtitle: 'Discover people, passion, and purpose driving progress.',
   },
   {
-    src: banner4,
+    src: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1200&q=80',
     title: 'Trends That Matter',
-    subtitle: 'Uncover strategies that empower today’s creators and innovators.',
+    subtitle: 'Uncover strategies that empower today\'s creators and innovators.',
   },
   {
-    src: banner5,
+    src: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&q=80',
     title: 'Voices of Change',
     subtitle: 'Thoughts and reflections from industry leaders around the globe.',
   },
@@ -40,22 +33,38 @@ const banners = [
 
 const BlogLuxuryBanner = () => {
   return (
-    <div className="relative w-full overflow-hidden border-y-[3px] border-gradient-to-r from-[#d4af37] via-[#e8c547] to-[#d4af37] shadow-[0_0_25px_rgba(212,175,55,0.3)]">
+    <div className="relative w-full overflow-hidden">
+      {/* Golden border top */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent z-10"></div>
+      
       <Carousel
         showThumbs={false}
         showStatus={false}
         autoPlay
         infiniteLoop
-        interval={5500}
-        transitionTime={1200}
+        interval={6000}
+        transitionTime={1000}
         stopOnHover
         swipeable
         emulateTouch
+        showIndicators={true}
+        renderIndicator={(onClickHandler, isSelected, index) => (
+          <button
+            onClick={onClickHandler}
+            className={`inline-block mx-1.5 transition-all duration-500 ${
+              isSelected
+                ? 'w-8 h-1.5 bg-gradient-to-r from-[#d4af37] to-[#e8c547] shadow-[0_0_12px_rgba(212,175,55,0.8)]'
+                : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/60 rounded-full'
+            }`}
+            aria-label={`Slide ${index + 1}`}
+          />
+        )}
         renderArrowPrev={(onClickHandler, hasPrev) =>
           hasPrev && (
             <button
               onClick={onClickHandler}
-              className="absolute left-5 top-1/2 z-20 -translate-y-1/2 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white hover:bg-white/20 transition-all duration-300"
+              className="absolute left-6 top-1/2 z-20 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-xl border border-white/20 text-white text-2xl hover:bg-black/40 hover:border-[#d4af37]/50 hover:scale-110 transition-all duration-300 shadow-lg"
+              aria-label="Previous slide"
             >
               ‹
             </button>
@@ -65,7 +74,8 @@ const BlogLuxuryBanner = () => {
           hasNext && (
             <button
               onClick={onClickHandler}
-              className="absolute right-5 top-1/2 z-20 -translate-y-1/2 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/30 text-white hover:bg-white/20 transition-all duration-300"
+              className="absolute right-6 top-1/2 z-20 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-xl border border-white/20 text-white text-2xl hover:bg-black/40 hover:border-[#d4af37]/50 hover:scale-110 transition-all duration-300 shadow-lg"
+              aria-label="Next slide"
             >
               ›
             </button>
@@ -73,47 +83,74 @@ const BlogLuxuryBanner = () => {
         }
       >
         {banners.map((banner, index) => (
-          <div key={index} className="relative">
-            {/* Image */}
-            <div className="w-full h-[20vh] md:h-[25vh]">
-              <Image
+          <div key={index} className="relative group">
+            {/* Image with parallax effect */}
+            <div className="w-full h-[28vh] md:h-[40vh] lg:h-[50vh] overflow-hidden">
+              <img
                 src={banner.src}
                 alt={banner.title}
-                priority={index === 0}
-                className="object-cover w-full h-full brightness-[0.85] hover:brightness-100 transition-all duration-[2500ms] ease-out"
+                className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-[3000ms] ease-out brightness-[0.7]"
               />
             </div>
 
-            {/* Overlay gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+            {/* Multi-layer gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-80"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/30"></div>
 
-            {/* Text content */}
-            <div className="absolute inset-0 flex flex-col justify-center items-start px-[8%]">
-              <h2 className="text-3xl md:text-5xl font-serif font-bold text-white/90 leading-tight drop-shadow-lg animate-slideUp">
-                {banner.title}
-              </h2>
-              <p className="mt-4 text-lg md:text-xl text-gray-200/90 max-w-2xl animate-fadeIn delay-300">
-                {banner.subtitle}
-              </p>
-              <div className="mt-6">
-                <button className="px-6 py-2 bg-gradient-to-r from-[#d4af37] to-[#e8c547] text-black font-medium rounded-full shadow-md hover:shadow-[0_0_20px_rgba(232,197,71,0.6)] transition-all duration-500">
-                  Read Articles →
-                </button>
+            {/* Animated golden accent */}
+            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent animate-pulse-slow"></div>
+
+            {/* Content container */}
+            <div className="absolute inset-0 flex flex-col justify-center items-start px-8 md:px-16 lg:px-24">
+              <div className="max-w-3xl space-y-6">
+                {/* Small overline */}
+                <div className="flex items-center gap-3 animate-fadeIn">
+                  <div className="w-12 h-px bg-gradient-to-r from-[#d4af37] to-transparent"></div>
+                  <span className="text-[#e8c547] text-xs md:text-sm font-semibold tracking-[0.3em] uppercase">
+                    Featured
+                  </span>
+                </div>
+
+                {/* Main title */}
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold text-white leading-tight animate-slideUp">
+                  {banner.title}
+                </h2>
+
+                {/* Subtitle */}
+                <p className="text-base md:text-xl lg:text-2xl text-gray-200 font-light leading-relaxed max-w-2xl animate-fadeInDelay">
+                  {banner.subtitle}
+                </p>
+
+                {/* CTA Button */}
+                <div className="pt-4 animate-fadeInDelay2">
+                  <button className="group/btn relative px-8 py-3 bg-gradient-to-r from-[#d4af37] via-[#e8c547] to-[#d4af37] text-black font-semibold rounded-full overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_rgba(212,175,55,0.6)] hover:scale-105">
+                    <span className="relative z-10 flex items-center gap-2">
+                      Explore Articles
+                      <svg className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </span>
+                    <div className="absolute inset-0 bg-white opacity-0 group-hover/btn:opacity-20 transition-opacity duration-500"></div>
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Decorative corner accents */}
+            <div className="absolute top-6 right-6 w-16 h-16 border-t-2 border-r-2 border-[#d4af37]/30 animate-fadeIn"></div>
+            <div className="absolute bottom-6 left-6 w-16 h-16 border-b-2 border-l-2 border-[#d4af37]/30 animate-fadeIn"></div>
           </div>
         ))}
       </Carousel>
 
-      {/* Decorative border glow */}
-      <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#d4af37] via-[#e8c547] to-[#d4af37] shadow-[0_0_10px_rgba(212,175,55,0.5)]"></div>
+      {/* Bottom golden border */}
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#d4af37] to-transparent z-10"></div>
 
-      {/* Animations */}
       <style jsx>{`
         @keyframes slideUp {
           0% {
             opacity: 0;
-            transform: translateY(30px);
+            transform: translateY(40px);
           }
           100% {
             opacity: 1;
@@ -128,14 +165,30 @@ const BlogLuxuryBanner = () => {
             opacity: 1;
           }
         }
+        @keyframes pulseSlow {
+          0%, 100% {
+            opacity: 0.3;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
         .animate-slideUp {
-          animation: slideUp 1.2s ease-out forwards;
+          animation: slideUp 1s ease-out forwards;
         }
         .animate-fadeIn {
-          animation: fadeIn 2s ease-in forwards;
+          animation: fadeIn 1.5s ease-in forwards;
         }
-        .delay-300 {
-          animation-delay: 0.3s;
+        .animate-fadeInDelay {
+          animation: fadeIn 1.5s ease-in 0.4s forwards;
+          opacity: 0;
+        }
+        .animate-fadeInDelay2 {
+          animation: fadeIn 1.5s ease-in 0.7s forwards;
+          opacity: 0;
+        }
+        .animate-pulse-slow {
+          animation: pulseSlow 3s ease-in-out infinite;
         }
       `}</style>
     </div>

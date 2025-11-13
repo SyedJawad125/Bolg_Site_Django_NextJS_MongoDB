@@ -193,6 +193,7 @@ import AxiosInstance from "@/components/AxiosInstance";
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/components/AuthContext';
 import Image from 'next/image';
+import { Search, Plus, Filter, Edit2, Trash2, ImageIcon, Folder, Grid3x3, Eye } from 'lucide-react';
 
 const ImagesCom = () => {
   const router = useRouter();
@@ -209,9 +210,8 @@ const ImagesCom = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState([]); // State for categories
+  const [categories, setCategories] = useState([]);
 
-  // Function to fetch categories
   const fetchCategories = async () => {
     try {
       const res = await AxiosInstance.get('/api/images/v1/images/');
@@ -228,7 +228,7 @@ const ImagesCom = () => {
 
   useEffect(() => {
     fetchImages();
-    fetchCategories(); // Now this is defined
+    fetchCategories();
   }, [data.current_page, data.limit, data.offset]);
 
   const fetchImages = async () => {
@@ -274,11 +274,15 @@ const ImagesCom = () => {
   };
 
   const deleteRecord = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this image?')) {
+      return;
+    }
+
     try {
       const res = await AxiosInstance.delete(`/api/images/v1/images/?id=${id}`);
       if (res) {
         toast.success('Image deleted successfully!');
-        fetchImages(); // Refresh the data
+        fetchImages();
       }
     } catch (error) {
       toast.error('Error deleting image!');
@@ -300,7 +304,7 @@ const ImagesCom = () => {
           ...prev,
           images: res.data.data.images || [],
           count: res.data.data.count || 0,
-          current_page: 1 // Reset to first page when searching
+          current_page: 1
         }));
       }
     } catch (error) {
@@ -320,264 +324,291 @@ const ImagesCom = () => {
     setData(prev => ({
       ...prev,
       limit: newLimit,
-      current_page: 1 // Reset to first page when changing limit
+      current_page: 1
     }));
   };
-if (!permissions.read_image) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-6">
-            <div className="text-center p-8 max-w-md">
-              <h2 className="text-2xl text-amber-400 mb-4">Access Denied</h2>
-              <p className="text-gray-300 mb-6">
-                You don't have permission to view Images. Please contact your administrator.
-              </p>
-              <button 
-                onClick={() => router.push('/')}
-                className="px-6 py-2 bg-amber-600 rounded-full hover:bg-amber-700 text-white transition-colors"
-              >
-                Return to Dashboard
-              </button>
-            </div>
-            <ToastContainer position="top-right" autoClose={2000} />
+
+  if (!permissions.read_image) {
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-6">
+        <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center max-w-md">
+          <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Eye className="w-10 h-10 text-red-400" />
           </div>
-        );
-      }
+          <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
+          <p className="text-slate-400 mb-6">
+            You don't have permission to view Images. Please contact your administrator.
+          </p>
+          <button 
+            onClick={() => router.push('/')}
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
+          >
+            Return to Dashboard
+          </button>
+        </div>
+        <ToastContainer 
+          position="top-right" 
+          autoClose={3000}
+          theme="dark"
+          className="mt-16"
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 py-12 px-4">
-  <ToastContainer position="top-right" autoClose={2000} />
-  
-  <div className="max-w-7xl mx-auto">
-    {/* Header Section */}
-    <div className="flex justify-between items-center mb-12">
-      <div>
-        <h1 className="text-4xl font-light text-white">LUXURY IMAGES</h1>
-        <div className="w-20 h-1 bg-gradient-to-r from-amber-400 to-amber-600 mt-1"></div>
-      </div>
-      {permissions.create_image && (
-      <button 
-        onClick={() => router.push('/addimagespage')}
-        className="px-6 py-3 border border-amber-500 text-amber-500 rounded-full hover:bg-amber-500 hover:text-black transform hover:scale-105 transition-transform"
-      >
-        Add Images
-      </button>
-      )}
-      <button 
-        onClick={() => router.push('/ImagesCategoryPage')}
-        className="px-6 py-3 border border-amber-500 text-amber-500 rounded-full hover:bg-amber-500 hover:text-black transform hover:scale-105 transition-transform"
-      >
-        Images Category
-      </button>
-    </div>  
-    
-
-    {/* Search and Stats Section */}
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 bg-gray-800/50 rounded-xl mb-8 gap-4">
-      <div className="text-amber-400">
-        Showing {data.images.length} of {data.count} items
-      </div>
+    <div className="w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 overflow-auto">
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000}
+        theme="dark"
+        className="mt-16"
+      />
       
-      <div className="flex flex-col md:flex-row gap-4 w-full md:w-2/3">
-        <div className="relative w-full">
-          <span className="absolute left-3 top-3 text-gray-400">
-            🔍
-          </span>
-          <input 
-            type="text" 
-            value={searchTerm} 
-            onChange={handleSearch}
-            placeholder="Search by name or category..."
-            className="w-full pl-10 py-3 bg-gray-700 rounded-full text-white focus:ring-amber-500 focus:outline-none"
-          />
-        </div>
-        
-        <div className="flex gap-2 items-center">
-          <select 
-            value={data.limit}
-            onChange={handleLimitChange}
-            className="bg-gray-700 text-white rounded-full px-3 py-2 focus:outline-none focus:ring-amber-500"
-          >
-            <option value="12">12 per page</option>
-            <option value="24">24 per page</option>
-            <option value="36">36 per page</option>
-            <option value="48">48 per page</option>
-          </select>
-        </div>
-      </div>
-    </div>
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+              Image Gallery
+            </h1>
+            <p className="text-slate-400 text-sm">Manage and organize your image collection</p>
+          </div>
 
-    {/* Images Grid */}
-    {isLoading ? (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-        {[...Array(12)].map((_, idx) => (
-          <div key={idx} className="animate-pulse">
-            <div className="bg-gray-800 rounded-xl aspect-square"></div>
-            <div className="mt-3 h-5 bg-gray-800 rounded w-3/4"></div>
-            <div className="mt-2 h-4 bg-gray-800 rounded w-1/2"></div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <>
-        {data.images.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            {data.images.map(item => (
-              <div
-                key={item.id}
-                className="group relative rounded-xl overflow-hidden hover:shadow-lg hover:shadow-amber-400/20 transition-all"
+          <div className="flex items-center gap-3">
+            {permissions.create_image && (
+              <button
+                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
+                onClick={() => router.push('/addimagespage')}
               >
-                <div className="aspect-square bg-gray-800">
-                  <Image
-                    src={`http://localhost:8000${item.image}`}
-                    alt={item.name}
-                    width={400}
-                    height={400}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.target.src = '/fallback-image.jpg';
-                    }}
-                  />
-                </div>
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                
-                <div className="p-4 absolute bottom-0 left-0 right-0">
-                  <span className="text-xs text-amber-400 uppercase">{item.category_name}</span>
-                  <h3 className="text-lg font-medium text-white line-clamp-1">{item.name}</h3>
-                  
-                  <div className="flex justify-between items-center mt-3">
-                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      {permissions.update_image && (
-                      <button
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          updateRecord(item.id); 
-                        }}
-                        className="p-2 bg-amber-600/90 rounded-lg hover:bg-amber-600 transition-colors"
-                        aria-label="Edit image"
-                      >
-                        ✏️
-                      </button>
-                      )}
-                      {permissions.delete_image && (
-                      <button
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          deleteRecord(item.id); 
-                        }}
-                        className="p-2 bg-red-600/90 rounded-lg hover:bg-red-600 transition-colors"
-                        aria-label="Delete image"
-                      >
-                        🗑️
-                      </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20 text-gray-300">
-            <p>No images match your search.</p>
-            <button 
-              onClick={() => router.push('/addimagespage')}
-              className="mt-6 px-6 py-2 bg-amber-600 rounded-full hover:bg-amber-700 text-white transition-colors"
+                <Plus className="w-5 h-5" />
+                Add Images
+              </button>
+            )}
+            <button
+              className="flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700/50 text-white px-6 py-3 rounded-xl font-semibold border border-slate-700/50 hover:border-slate-600/50 transition-all duration-200 hover:scale-105"
+              onClick={() => router.push('/ImagesCategoryPage')}
             >
-              Add Images
+              <Folder className="w-5 h-5" />
+              Categories
             </button>
           </div>
-        )}
+        </div>
 
-        {/* Enhanced Pagination */}
-        {data.total_pages > 1 && (
-          <div className="flex flex-col md:flex-row justify-between items-center mt-12 gap-4">
-            <div className="text-gray-400 text-sm">
-              Page {data.current_page} of {data.total_pages} • {data.count} total items
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 hover:border-slate-600/50 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-slate-400 text-sm font-medium">Total Images</span>
+              <ImageIcon className="w-5 h-5 text-blue-400" />
             </div>
-            
+            <p className="text-3xl font-bold text-white">{data.count}</p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-purple-900/20 to-purple-950/30 backdrop-blur-sm border border-purple-700/30 rounded-xl p-5 hover:border-purple-600/40 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-slate-400 text-sm font-medium">Current Page</span>
+              <Grid3x3 className="w-5 h-5 text-purple-400" />
+            </div>
+            <p className="text-3xl font-bold text-purple-400">{data.current_page} / {data.total_pages}</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-sm border border-emerald-700/30 rounded-xl p-5 hover:border-emerald-600/40 transition-all">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-slate-400 text-sm font-medium">Showing</span>
+              <Eye className="w-5 h-5 text-emerald-400" />
+            </div>
+            <p className="text-3xl font-bold text-emerald-400">{data.images.length}</p>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5">
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex-1 min-w-[250px] relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by name or category..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full pl-12 pr-4 py-3 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-500"
+              />
+            </div>
+
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => handlePageChange(1)}
-                disabled={data.current_page === 1}
-                className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 transition-colors"
-                aria-label="First page"
+              <Filter className="w-5 h-5 text-slate-400" />
+              <select
+                value={data.limit}
+                onChange={handleLimitChange}
+                className="px-4 py-3 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all cursor-pointer"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-              
-              <button 
-                onClick={() => handlePageChange(data.current_page - 1)}
-                disabled={!data.previous}
-                className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 transition-colors"
-                aria-label="Previous page"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-              
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, data.total_pages) }, (_, i) => {
-                  let pageNum;
-                  if (data.total_pages <= 5) {
-                    pageNum = i + 1;
-                  } else if (data.current_page <= 3) {
-                    pageNum = i + 1;
-                  } else if (data.current_page >= data.total_pages - 2) {
-                    pageNum = data.total_pages - 4 + i;
-                  } else {
-                    pageNum = data.current_page - 2 + i;
-                  }
-                  
-                  return (
-                    <button 
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`w-8 h-8 rounded-full text-sm transition-colors ${
-                        data.current_page === pageNum
-                          ? 'bg-amber-600 text-white'
-                          : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                      }`}
-                      aria-label={`Page ${pageNum}`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-              </div>
-              
-              <button 
-                onClick={() => handlePageChange(data.current_page + 1)}
-                disabled={!data.next}
-                className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 transition-colors"
-                aria-label="Next page"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-              
-              <button 
-                onClick={() => handlePageChange(data.total_pages)}
-                disabled={data.current_page === data.total_pages}
-                className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 transition-colors"
-                aria-label="Last page"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  <path fillRule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
+                <option value="12">12 per page</option>
+                <option value="24">24 per page</option>
+                <option value="36">36 per page</option>
+                <option value="48">48 per page</option>
+              </select>
             </div>
           </div>
-        )}
-      </>
-    )}
-  </div>
-</div>
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
+          </div>
+          <p className="mt-6 text-slate-400 font-medium">Loading images...</p>
+        </div>
+      )}
+
+      {/* Images Grid */}
+      {!isLoading && (
+        <>
+          {data.images.length > 0 ? (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                {data.images.map(item => (
+                  <div
+                    key={item.id}
+                    className="group relative bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden hover:border-slate-600/60 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10"
+                  >
+                    <div className="aspect-square relative overflow-hidden">
+                      <Image
+                        src={`http://localhost:8000${item.image}`}
+                        alt={item.name}
+                        width={400}
+                        height={400}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.src = '/fallback-image.jpg';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent opacity-60"></div>
+                    </div>
+                    
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-md border border-blue-500/30">
+                          {item.category_name || 'Uncategorized'}
+                        </span>
+                      </div>
+                      <h3 className="text-white font-semibold text-sm line-clamp-1 mb-3" title={item.name}>
+                        {item.name}
+                      </h3>
+                      
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        {permissions.update_image && (
+                          <button
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              updateRecord(item.id); 
+                            }}
+                            className="flex-1 p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all hover:scale-105"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4 mx-auto" />
+                          </button>
+                        )}
+                        {permissions.delete_image && (
+                          <button
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              deleteRecord(item.id); 
+                            }}
+                            className="flex-1 p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all hover:scale-105"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4 mx-auto" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {data.total_pages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-8 pb-6">
+                  <button
+                    onClick={() => handlePageChange(data.current_page - 1)}
+                    disabled={!data.previous}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      !data.previous
+                        ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed border border-slate-700/30' 
+                        : 'bg-slate-800/50 text-white hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
+                    }`}
+                  >
+                    Previous
+                  </button>
+
+                  <div className="flex gap-2">
+                    {Array.from({ length: Math.min(5, data.total_pages) }, (_, i) => {
+                      let pageNum;
+                      if (data.total_pages <= 5) {
+                        pageNum = i + 1;
+                      } else if (data.current_page <= 3) {
+                        pageNum = i + 1;
+                      } else if (data.current_page >= data.total_pages - 2) {
+                        pageNum = data.total_pages - 4 + i;
+                      } else {
+                        pageNum = data.current_page - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`w-10 h-10 rounded-lg font-medium transition-all ${
+                            data.current_page === pageNum 
+                              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
+                              : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(data.current_page + 1)}
+                    disabled={!data.next}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      !data.next
+                        ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed border border-slate-700/30' 
+                        : 'bg-slate-800/50 text-white hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center">
+              <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ImageIcon className="w-10 h-10 text-slate-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">No images found</h3>
+              <p className="text-slate-400 mb-6">Get started by adding your first image</p>
+              {permissions.create_image && (
+                <button
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
+                  onClick={() => router.push('/addimagespage')}
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Your First Image
+                </button>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 };
 
