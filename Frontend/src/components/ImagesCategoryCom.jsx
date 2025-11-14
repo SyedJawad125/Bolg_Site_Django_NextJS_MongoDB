@@ -8,7 +8,11 @@ import { AuthContext } from '@/components/AuthContext';
 
 const ImagesCategoryCom = () => {
   const router = useRouter();
-  const { permissions = {}, user } = useContext(AuthContext);
+  const authContext = useContext(AuthContext);
+  
+  // Safely access permissions with fallback
+  const permissions = authContext?.permissions || {};
+  const user = authContext?.user || null;
   
   const [data, setData] = useState({
     categories: [],
@@ -18,22 +22,32 @@ const ImagesCategoryCom = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [debugInfo, setDebugInfo] = useState('');
+
+  // Check for permissions - try multiple possible permission names (initialized at start)
+  const hasReadPermission = permissions?.read_images_category || permissions?.read_category || permissions?.READ_CATEGORY || false;
+  const hasCreatePermission = permissions?.create_images_category || permissions?.create_category || permissions?.CREATE_CATEGORY || false;
+  const hasUpdatePermission = permissions?.update_images_category || permissions?.update_category || permissions?.UPDATE_CATEGORY || false;
+  const hasDeletePermission = permissions?.delete_images_category || permissions?.delete_category || permissions?.DELETE_CATEGORY || false;
 
   useEffect(() => {
-    console.log('Component mounted, fetching categories...');
-    fetchCategories();
+    if (hasReadPermission) {
+      console.log('Component mounted, fetching categories...');
+      fetchCategories();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [hasReadPermission]);
 
   const fetchCategories = async () => {
+    if (!hasReadPermission) {
+      toast.error('You do not have permission to view categories');
+      return;
+    }
+
     setIsLoading(true);
-    setDebugInfo('Starting fetch...');
     
     try {
       const url = `/api/images/v1/categories/?page=${data.current_page}&limit=${data.limit}`;
       console.log('Making API call to:', url);
-      setDebugInfo(`Calling: ${url}`);
       
       const res = await AxiosInstance.get(url);
       
@@ -41,13 +55,6 @@ const ImagesCategoryCom = () => {
       console.log('res:', res);
       console.log('res.data:', res.data);
       console.log('res.data.data:', res.data.data);
-      console.log('res.data.message:', res.data.message);
-      console.log('res.data.count:', res.data.count);
-      console.log('Type of res.data:', typeof res.data);
-      console.log('Type of res.data.data:', typeof res.data.data);
-      console.log('Is Array:', Array.isArray(res.data.data));
-      
-      setDebugInfo(`Response received: ${JSON.stringify(res.data, null, 2)}`);
       
       // Handle different possible response structures
       let categories = [];
@@ -69,7 +76,6 @@ const ImagesCategoryCom = () => {
         // Check if there's a different structure
         else {
           console.log('❌ Unexpected data structure:', res.data);
-          setDebugInfo(`Unexpected structure: ${JSON.stringify(Object.keys(res.data))}`);
         }
       }
       
@@ -98,8 +104,11 @@ const ImagesCategoryCom = () => {
       console.error('Error response data:', error.response?.data);
       console.error('Error response status:', error.response?.status);
       
-      setDebugInfo(`Error: ${error.message}`);
-      toast.error('Error fetching categories: ' + error.message);
+      if (error.response?.status === 403) {
+        toast.error('You do not have permission to view categories');
+      } else {
+        toast.error('Error fetching categories: ' + error.message);
+      }
     } finally {
       setIsLoading(false);
       console.log('Loading complete');
@@ -107,6 +116,11 @@ const ImagesCategoryCom = () => {
   };
 
   const deleteCategory = async (id) => {
+    if (!hasDeletePermission) {
+      toast.error('You do not have permission to delete categories');
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to delete this category?')) {
       return;
     }
@@ -121,17 +135,29 @@ const ImagesCategoryCom = () => {
       }
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error('Error deleting category!');
+      if (error.response?.status === 403) {
+        toast.error('You do not have permission to delete categories');
+      } else {
+        toast.error('Error deleting category!');
+      }
     }
   };
 
   const updateCategory = async (id) => {
+    if (!hasUpdatePermission) {
+      toast.error('You do not have permission to update categories');
+      return;
+    }
     router.push(`/UpdateImagesCategoryPage?id=${id}`);
   };
 
   const handleSearch = async (e) => {
     const value = e.target.value;
     setSearchTerm(value);
+
+    if (!hasReadPermission) {
+      return;
+    }
 
     if (!value.trim()) {
       fetchCategories();
@@ -161,7 +187,11 @@ const ImagesCategoryCom = () => {
       }));
     } catch (error) {
       console.error('Search error:', error);
-      toast.error('Error searching categories');
+      if (error.response?.status === 403) {
+        toast.error('You do not have permission to search categories');
+      } else {
+        toast.error('Error searching categories');
+      }
     }
   };
 
@@ -171,6 +201,8 @@ const ImagesCategoryCom = () => {
       ...prev,
       current_page: page
     }));
+    // Trigger fetch after state update
+    setTimeout(() => fetchCategories(), 0);
   };
 
   const handleLimitChange = (e) => {
@@ -181,6 +213,16 @@ const ImagesCategoryCom = () => {
       limit: newLimit,
       current_page: 1
     }));
+    // Trigger fetch after state update
+    setTimeout(() => fetchCategories(), 0);
+  };
+
+  const handleAddCategory = () => {
+    if (!hasCreatePermission) {
+      toast.error('You do not have permission to add categories');
+      return;
+    }
+    router.push('/AddImagesCategoryPage');
   };
 
   const total_pages = Math.ceil(data.count / data.limit);
@@ -191,17 +233,38 @@ const ImagesCategoryCom = () => {
   console.log('count:', data.count);
   console.log('isLoading:', isLoading);
 
-  if (!permissions.read_images_category) {
+  // Check if AuthContext is still loading
+  if (!authContext) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-6">
-        <div className="text-center p-8 max-w-md">
-          <h2 className="text-2xl text-amber-400 mb-4">Access Denied</h2>
+        <div className="text-center">
+          <div className="animate-spin h-12 w-12 border-4 border-amber-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Access denied screen
+  if (!hasReadPermission) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-6">
+        <div className="bg-gray-800/30 backdrop-blur-sm border border-gray-700/50 rounded-xl p-12 text-center max-w-md">
+          <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-amber-400 mb-4">Access Denied</h2>
           <p className="text-gray-300 mb-6">
-            You don't have permission to view Images. Please contact your administrator.
+            You don't have permission to view Images Categories. Please contact your administrator.
+          </p>
+          <p className="text-xs text-gray-500 mb-6">
+            Required permission: READ_CATEGORY
           </p>
           <button 
             onClick={() => router.push('/')}
-            className="px-6 py-2 bg-amber-600 rounded-full hover:bg-amber-700 text-white transition-colors"
+            className="px-6 py-3 bg-amber-600 rounded-full hover:bg-amber-700 text-white font-semibold transition-all duration-200 hover:scale-105"
           >
             Return to Dashboard
           </button>
@@ -217,41 +280,13 @@ const ImagesCategoryCom = () => {
       
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-amber-400">Images Categories Management</h1>
-        {permissions.create_images_category && (
+        {hasCreatePermission && (
           <button 
-            onClick={() => router.push('/AddImagesCategoryPage')}
+            onClick={handleAddCategory}
             className="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-full shadow-md transition"
           >
             Add Category
           </button>
-        )}
-      </div>
-
-      {/* Enhanced Debug Info Panel */}
-      <div className="bg-gray-800 p-4 rounded-lg mb-6 border-2 border-amber-500">
-        <h3 className="text-amber-400 font-semibold mb-2">🔍 Debug Information:</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mb-3">
-          <div>Categories Length: <span className="text-amber-400 font-bold">{data.categories.length}</span></div>
-          <div>Total Count: <span className="text-amber-400 font-bold">{data.count}</span></div>
-          <div>Current Page: <span className="text-amber-400 font-bold">{data.current_page}</span></div>
-          <div>Items per Page: <span className="text-amber-400 font-bold">{data.limit}</span></div>
-        </div>
-        <div className="bg-black p-2 rounded text-xs mb-2">
-          <div className="text-green-400">Loading: {isLoading ? 'YES' : 'NO'}</div>
-          <div className="text-blue-400">Has Data: {data.categories.length > 0 ? 'YES' : 'NO'}</div>
-          <div className="text-purple-400">Is Array: {Array.isArray(data.categories) ? 'YES' : 'NO'}</div>
-        </div>
-        {data.categories.length > 0 && (
-          <div className="mt-2 text-xs bg-green-900 p-2 rounded">
-            <strong>Category IDs:</strong> {data.categories.map(cat => cat.id).join(', ')}
-            <br />
-            <strong>First Category:</strong> {JSON.stringify(data.categories[0], null, 2)}
-          </div>
-        )}
-        {debugInfo && (
-          <div className="mt-2 text-xs bg-blue-900 p-2 rounded overflow-auto max-h-40">
-            <pre>{debugInfo}</pre>
-          </div>
         )}
       </div>
 
@@ -289,10 +324,6 @@ const ImagesCategoryCom = () => {
           </div>
         ) : (
           <>
-            <div className="bg-yellow-900 text-yellow-200 p-3 mb-2 rounded text-sm">
-              ⚠️ Rendering table with {data.categories.length} items
-            </div>
-            
             <table className="min-w-full divide-y divide-amber-500 bg-gray-950">
               <thead>
                 <tr>
@@ -320,7 +351,7 @@ const ImagesCategoryCom = () => {
                           {new Date(category.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-300 space-x-4">
-                          {permissions.update_images_category && (
+                          {hasUpdatePermission && (
                             <button
                               onClick={() => updateCategory(category.id)}
                               className="text-amber-400 hover:underline"
@@ -328,7 +359,7 @@ const ImagesCategoryCom = () => {
                               Edit
                             </button>
                           )}
-                          {permissions.delete_images_category && (
+                          {hasDeletePermission && (
                             <button
                               onClick={() => deleteCategory(category.id)}
                               className="text-red-400 hover:underline"
@@ -348,8 +379,7 @@ const ImagesCategoryCom = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <p className="text-lg font-bold text-red-400">No categories found</p>
-                        <p className="text-sm mt-2">API returned {data.count} items but array is empty</p>
-                        <p className="text-xs mt-2 text-gray-600">Check console and debug panel above</p>
+                        <p className="text-sm mt-2">Try adjusting your search or add a new category</p>
                       </div>
                     </td>
                   </tr>
