@@ -85,13 +85,20 @@ const BlogLuxuryBanner = () => {
         {banners.map((banner, index) => (
           <div key={index} className="relative group">
             {/* Image with parallax effect */}
-            <div className="w-full h-[28vh] md:h-[40vh] lg:h-[50vh] overflow-hidden">
+            {/* <div className="w-full h-[28vh] md:h-[40vh] lg:h-[50vh] overflow-hidden">
               <img
                 src={banner.src}
                 alt={banner.title}
                 className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-[3000ms] ease-out brightness-[0.7]"
               />
-            </div>
+            </div> */}
+            <div className="w-full h-[calc(99vh-6rem)] overflow-hidden">
+              <img
+                src={banner.src}
+                alt={banner.title}
+                className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-[3000ms] ease-out brightness-[0.7]"
+              />
+            </div> */
 
             {/* Multi-layer gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-80"></div>
