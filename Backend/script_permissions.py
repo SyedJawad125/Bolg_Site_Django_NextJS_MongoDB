@@ -117,6 +117,16 @@ permissions = [
             description='User can update Category'),
     Permission(name='Delete Category', code_name='delete_category', module_name='Category', module_label='Category Management',
             description='User can delete Category'),
+
+            # ---------- Category ----------
+    Permission(name='Create Image Category', code_name='create_image_category', module_name='Image Category', module_label=' Image Category Management',
+            description='User can create Image Category'),
+    Permission(name='Read Image Category', code_name='read_image_category', module_name='Image Category', module_label='Image Category Management',
+            description='User can read Image Category'),
+    Permission(name='Update Image Category', code_name='update_image_category', module_name='Image Category', module_label='Image Category Management',
+            description='User can update Image Category'),
+    Permission(name='Delete Image Category', code_name='delete_image_category', module_name='Image Category', module_label='Image Category Management',
+            description='User can delete Image Category'),
 ]
 
 

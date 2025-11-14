@@ -11,46 +11,39 @@ import { Search, Plus, Filter, Edit2, Trash2, ImageIcon, Folder, Grid3x3, Eye } 
 const ImagesCom = () => {
   const router = useRouter();
   const { permissions = {} } = useContext(AuthContext);
-  const [data, setData] = useState({
-    images: [],
-    count: 0,
-    total_pages: 1,
-    current_page: 1,
-    limit: 12,
-    offset: 0,
-    next: false,
-    previous: false
-  });
+  const [images, setImages] = useState([]);
+  const [filteredImages, setFilteredImages] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
 
-  // Check for permissions - try multiple possible permission names (same pattern as category)
+  // Check for permissions
   const hasReadPermission = permissions.read_image || permissions.READ_IMAGE;
   const hasCreatePermission = permissions.create_image || permissions.CREATE_IMAGE;
   const hasUpdatePermission = permissions.update_image || permissions.UPDATE_IMAGE;
   const hasDeletePermission = permissions.delete_image || permissions.DELETE_IMAGE;
 
-  const fetchCategories = async () => {
-    try {
-      const res = await AxiosInstance.get('/api/images/v1/images/');
-      if (res?.data?.data) {
-        setCategories(res.data.data);
-      } else if (res?.data) {
-        setCategories(res.data);
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast.error('Failed to load categories');
-    }
-  };
-
   useEffect(() => {
     if (hasReadPermission) {
       fetchImages();
-      fetchCategories();
     }
-  }, [data.current_page, data.limit, data.offset, hasReadPermission]);
+  }, [hasReadPermission]);
+
+  // Update filtered images when search term or images change
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = images.filter(item => 
+        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredImages(filtered);
+    } else {
+      setFilteredImages(images);
+    }
+    setCurrentPage(1); // Reset to first page when filtering
+  }, [searchTerm, images]);
 
   const fetchImages = async () => {
     if (!hasReadPermission) {
@@ -60,36 +53,20 @@ const ImagesCom = () => {
 
     setIsLoading(true);
     try {
-      const res = await AxiosInstance.get(
-        `/api/images/v1/images/?page=${data.current_page}&limit=${data.limit}&offset=${data.offset}`
-      );
+      const res = await AxiosInstance.get('/api/images/v1/images/');
       
-      if (res?.data?.data) {
-        const responseData = res.data.data;
-        setData({
-          images: responseData.images || [],
-          count: responseData.count || 0,
-          total_pages: responseData.total_pages || 1,
-          current_page: responseData.current_page || 1,
-          limit: responseData.limit || 12,
-          offset: responseData.offset || 0,
-          next: responseData.next || false,
-          previous: responseData.previous || false
-        });
-      } else if (res?.data) {
-        setData({
-          images: res.data.images || [],
-          count: res.data.count || 0,
-          total_pages: res.data.total_pages || 1,
-          current_page: res.data.current_page || 1,
-          limit: res.data.limit || 12,
-          offset: res.data.offset || 0,
-          next: res.data.next || false,
-          previous: res.data.previous || false
-        });
+      // Handle the response structure from your API
+      if (res?.data?.data && Array.isArray(res.data.data)) {
+        setImages(res.data.data);
+        setFilteredImages(res.data.data);
+      } else if (res?.data && Array.isArray(res.data)) {
+        setImages(res.data);
+        setFilteredImages(res.data);
       } else {
         console.error('Unexpected response structure:', res);
         toast.error('Received unexpected data format from server');
+        setImages([]);
+        setFilteredImages([]);
       }
     } catch (error) {
       console.error('Error occurred:', error);
@@ -98,6 +75,8 @@ const ImagesCom = () => {
       } else {
         toast.error(error.response?.data?.message || 'Error fetching images');
       }
+      setImages([]);
+      setFilteredImages([]);
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +103,7 @@ const ImagesCom = () => {
       if (error.response?.status === 403) {
         toast.error('You do not have permission to delete images');
       } else {
-        toast.error('Error deleting image!');
+        toast.error(error.response?.data?.message || 'Error deleting image!');
       }
     }
   };
@@ -137,46 +116,8 @@ const ImagesCom = () => {
     router.push(`/updateimagespage?imgid=${imgid}`);
   };
 
-  const handleSearch = async (e) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTerm(value);
-
-    if (!hasReadPermission) {
-      return;
-    }
-
-    try {
-      const res = await AxiosInstance.get(`/api/images/v1/images/?search=${value}`);
-      if (res && res.data && res.data.data) {
-        setData(prev => ({
-          ...prev,
-          images: res.data.data.images || [],
-          count: res.data.data.count || 0,
-          current_page: 1
-        }));
-      }
-    } catch (error) {
-      console.error('Search error:', error);
-      if (error.response?.status === 403) {
-        toast.error('You do not have permission to search images');
-      }
-    }
-  };
-
-  const handlePageChange = (page) => {
-    setData(prev => ({
-      ...prev,
-      current_page: page
-    }));
-  };
-
-  const handleLimitChange = (e) => {
-    const newLimit = parseInt(e.target.value);
-    setData(prev => ({
-      ...prev,
-      limit: newLimit,
-      current_page: 1
-    }));
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const handleAddImage = () => {
@@ -185,6 +126,23 @@ const ImagesCom = () => {
       return;
     }
     router.push('/addimagespage');
+  };
+
+  const handleLimitChange = (e) => {
+    setItemsPerPage(parseInt(e.target.value));
+    setCurrentPage(1);
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredImages.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentImages = filteredImages.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
 
   // Access denied screen
@@ -265,7 +223,7 @@ const ImagesCom = () => {
               <span className="text-slate-400 text-sm font-medium">Total Images</span>
               <ImageIcon className="w-5 h-5 text-blue-400" />
             </div>
-            <p className="text-3xl font-bold text-white">{data.count}</p>
+            <p className="text-3xl font-bold text-white">{images.length}</p>
           </div>
           
           <div className="bg-gradient-to-br from-purple-900/20 to-purple-950/30 backdrop-blur-sm border border-purple-700/30 rounded-xl p-5 hover:border-purple-600/40 transition-all">
@@ -273,7 +231,7 @@ const ImagesCom = () => {
               <span className="text-slate-400 text-sm font-medium">Current Page</span>
               <Grid3x3 className="w-5 h-5 text-purple-400" />
             </div>
-            <p className="text-3xl font-bold text-purple-400">{data.current_page} / {data.total_pages}</p>
+            <p className="text-3xl font-bold text-purple-400">{currentPage} / {totalPages || 1}</p>
           </div>
 
           <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-sm border border-emerald-700/30 rounded-xl p-5 hover:border-emerald-600/40 transition-all">
@@ -281,7 +239,7 @@ const ImagesCom = () => {
               <span className="text-slate-400 text-sm font-medium">Showing</span>
               <Eye className="w-5 h-5 text-emerald-400" />
             </div>
-            <p className="text-3xl font-bold text-emerald-400">{data.images.length}</p>
+            <p className="text-3xl font-bold text-emerald-400">{currentImages.length}</p>
           </div>
         </div>
 
@@ -292,7 +250,7 @@ const ImagesCom = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search by name or category..."
+                placeholder="Search by name, category, or description..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="w-full pl-12 pr-4 py-3 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-500"
@@ -302,7 +260,7 @@ const ImagesCom = () => {
             <div className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-slate-400" />
               <select
-                value={data.limit}
+                value={itemsPerPage}
                 onChange={handleLimitChange}
                 className="px-4 py-3 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all cursor-pointer"
               >
@@ -330,13 +288,13 @@ const ImagesCom = () => {
       {/* Images Grid */}
       {!isLoading && (
         <>
-          {data.images.length > 0 ? (
+          {currentImages.length > 0 ? (
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-                {data.images.map(item => (
+                {currentImages.map(item => (
                   <div
                     key={item.id}
-                    className="group relative bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden hover:border-slate-600/60 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10"
+                    className="group relative bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-sm border border-slate-700/50 rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/20 hover:-translate-y-1"
                   >
                     <div className="aspect-square relative overflow-hidden">
                       <Image
@@ -344,66 +302,92 @@ const ImagesCom = () => {
                         alt={item.name}
                         width={400}
                         height={400}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-125 transition-transform duration-700 ease-out"
                         onError={(e) => {
                           e.target.src = '/fallback-image.jpg';
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent opacity-60"></div>
+                      {/* Enhanced gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/70 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-300"></div>
+                      
+                      {/* Shine effect on hover */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                      </div>
                     </div>
                     
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-md border border-blue-500/30">
+                    <div className="absolute inset-0 p-5 flex flex-col justify-between">
+                      {/* Top section - Category badge */}
+                      <div className="flex items-start justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-2 group-hover:translate-y-0">
+                        <span className="px-3 py-1.5 bg-gradient-to-r from-blue-600/90 to-purple-600/90 backdrop-blur-md text-white text-xs font-bold rounded-full border border-white/20 shadow-lg">
                           {item.category_name || 'Uncategorized'}
                         </span>
                       </div>
-                      <h3 className="text-white font-semibold text-sm line-clamp-1 mb-3" title={item.name}>
-                        {item.name}
-                      </h3>
-                      
-                      {/* Action Buttons - Only show if user has permissions */}
-                      {(hasUpdatePermission || hasDeletePermission) && (
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          {hasUpdatePermission && (
-                            <button
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
-                                updateRecord(item.id); 
-                              }}
-                              className="flex-1 p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all hover:scale-105"
-                              title="Edit"
-                            >
-                              <Edit2 className="w-4 h-4 mx-auto" />
-                            </button>
-                          )}
-                          {hasDeletePermission && (
-                            <button
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
-                                deleteRecord(item.id); 
-                              }}
-                              className="flex-1 p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all hover:scale-105"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4 mx-auto" />
-                            </button>
+
+                      {/* Bottom section - Title and Actions */}
+                      <div className="space-y-3">
+                        {/* Title with better visibility */}
+                        <div className="bg-slate-900/80 backdrop-blur-md rounded-xl p-3 border border-slate-700/50">
+                          <h3 className="text-white font-bold text-base line-clamp-2 leading-tight" title={item.name}>
+                            {item.name}
+                          </h3>
+                          {item.description && (
+                            <p className="text-slate-300 text-xs mt-1 line-clamp-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              {item.description}
+                            </p>
                           )}
                         </div>
-                      )}
+                        
+                        {/* Action Buttons - Enhanced Design */}
+                        {(hasUpdatePermission || hasDeletePermission) && (
+                          <div className="flex gap-2 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-75">
+                            {hasUpdatePermission && (
+                              <button
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  updateRecord(item.id); 
+                                }}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition-all hover:scale-105 hover:shadow-blue-500/50"
+                                title="Edit Image"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                                <span className="text-xs">Edit</span>
+                              </button>
+                            )}
+                            {hasDeletePermission && (
+                              <button
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  deleteRecord(item.id); 
+                                }}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-semibold rounded-xl shadow-lg shadow-red-500/30 transition-all hover:scale-105 hover:shadow-red-500/50"
+                                title="Delete Image"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                <span className="text-xs">Delete</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Corner accent */}
+                    <div className="absolute top-0 right-0 w-16 h-16 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute top-3 right-3 w-10 h-10 border-t-2 border-r-2 border-blue-400/50 rounded-tr-lg"></div>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Pagination */}
-              {data.total_pages > 1 && (
+              {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-8 pb-6">
                   <button
-                    onClick={() => handlePageChange(data.current_page - 1)}
-                    disabled={!data.previous}
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
                     className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      !data.previous
+                      currentPage === 1
                         ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed border border-slate-700/30' 
                         : 'bg-slate-800/50 text-white hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
                     }`}
@@ -412,16 +396,16 @@ const ImagesCom = () => {
                   </button>
 
                   <div className="flex gap-2">
-                    {Array.from({ length: Math.min(5, data.total_pages) }, (_, i) => {
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                       let pageNum;
-                      if (data.total_pages <= 5) {
+                      if (totalPages <= 5) {
                         pageNum = i + 1;
-                      } else if (data.current_page <= 3) {
+                      } else if (currentPage <= 3) {
                         pageNum = i + 1;
-                      } else if (data.current_page >= data.total_pages - 2) {
-                        pageNum = data.total_pages - 4 + i;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
                       } else {
-                        pageNum = data.current_page - 2 + i;
+                        pageNum = currentPage - 2 + i;
                       }
 
                       return (
@@ -429,7 +413,7 @@ const ImagesCom = () => {
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
                           className={`w-10 h-10 rounded-lg font-medium transition-all ${
-                            data.current_page === pageNum 
+                            currentPage === pageNum 
                               ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
                               : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
                           }`}
@@ -441,10 +425,10 @@ const ImagesCom = () => {
                   </div>
 
                   <button
-                    onClick={() => handlePageChange(data.current_page + 1)}
-                    disabled={!data.next}
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
                     className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      !data.next
+                      currentPage === totalPages
                         ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed border border-slate-700/30' 
                         : 'bg-slate-800/50 text-white hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
                     }`}
@@ -459,9 +443,13 @@ const ImagesCom = () => {
               <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <ImageIcon className="w-10 h-10 text-slate-600" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">No images found</h3>
-              <p className="text-slate-400 mb-6">Get started by adding your first image</p>
-              {hasCreatePermission && (
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {searchTerm ? 'No images found matching your search' : 'No images found'}
+              </h3>
+              <p className="text-slate-400 mb-6">
+                {searchTerm ? 'Try adjusting your search terms' : 'Get started by adding your first image'}
+              </p>
+              {hasCreatePermission && !searchTerm && (
                 <button
                   className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
                   onClick={handleAddImage}

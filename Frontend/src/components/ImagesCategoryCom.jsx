@@ -24,10 +24,10 @@ const ImagesCategoryCom = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Check for permissions - try multiple possible permission names (initialized at start)
-  const hasReadPermission = permissions?.read_images_category || permissions?.read_category || permissions?.READ_CATEGORY || false;
-  const hasCreatePermission = permissions?.create_images_category || permissions?.create_category || permissions?.CREATE_CATEGORY || false;
-  const hasUpdatePermission = permissions?.update_images_category || permissions?.update_category || permissions?.UPDATE_CATEGORY || false;
-  const hasDeletePermission = permissions?.delete_images_category || permissions?.delete_category || permissions?.DELETE_CATEGORY || false;
+  const hasReadPermission = permissions?.read_image_category || permissions?.READ_IMAGE_CATEGORY || false;
+  const hasCreatePermission = permissions?.create_image_category || permissions?.CREATE_IMAGE_CATEGORY || false;
+  const hasUpdatePermission = permissions?.update_image_category || permissions?.UPDATE_IMAGE_CATEGORY || false;
+  const hasDeletePermission = permissions?.delete_image_category || permissions?.DELETE_IMAGE_CATEGORY || false;
 
   useEffect(() => {
     if (hasReadPermission) {

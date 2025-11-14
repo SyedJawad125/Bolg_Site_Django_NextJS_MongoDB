@@ -63,19 +63,19 @@ class CategoriesView(BaseView):
     serializer_class = CategoriesSerializer
     filterset_class = CategoriesFilter
 
-    @permission_required([CREATE_CATEGORY])
+    @permission_required([CREATE_IMAGE_CATEGORY])
     def post(self, request):
         return super().post_(request)
 
-    @permission_required([READ_CATEGORY])
+    @permission_required([READ_IMAGE_CATEGORY])
     def get(self, request):
         return super().get_(request)
 
-    @permission_required([UPDATE_CATEGORY])
+    @permission_required([UPDATE_IMAGE_CATEGORY])
     def patch(self, request):
         return super().patch_(request)
     
-    @permission_required([DELETE_CATEGORY])
+    @permission_required([DELETE_IMAGE_CATEGORY])
     def delete(self, request):
         return super().delete_(request)
 
