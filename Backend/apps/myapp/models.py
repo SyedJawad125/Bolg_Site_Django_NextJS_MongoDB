@@ -69,7 +69,7 @@ class BlogPost(TimeUserStamps):
         ]
 
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=250, unique=True, blank=True)
+    slug = models.SlugField(max_length=250, blank=True)
     subtitle = models.CharField(max_length=300, blank=True)
     content = CKEditor5Field(config_name='extends')  # Using CKEditor 5
     excerpt = CKEditor5Field(config_name='default', blank=True)

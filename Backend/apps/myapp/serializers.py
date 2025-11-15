@@ -419,14 +419,45 @@ class TagListingSerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     """Full tag serializer with validations"""
     posts_count = serializers.SerializerMethodField()
+    created_by = serializers.SerializerMethodField()
+    updated_by = serializers.SerializerMethodField()
     
     class Meta:
         model = Tag
-        exclude = ['deleted']
+        fields = [
+            'id',
+            'name',
+            'slug',
+            'color',
+            'is_active',
+            'posts_count',
+            'created_by',
+            'updated_by',
+            'created_at',
+            'updated_at'
+        ]
         read_only_fields = ('created_at', 'updated_at', 'created_by', 'updated_by', 'slug')
     
     def get_posts_count(self, obj):
+        """Get posts count"""
+        # Return 0 for deleted tags
+        if obj.deleted:
+            return 0
         return obj.blogpost_set.filter(deleted=False, status=PUBLISHED).count()
+    
+    def get_created_by(self, obj):
+        """Get created by user with fallback to username"""
+        if obj.created_by:
+            full_name = obj.created_by.get_full_name()
+            return full_name.strip() if full_name and full_name.strip() else obj.created_by.username
+        return None
+    
+    def get_updated_by(self, obj):
+        """Get updated by user with fallback to username"""
+        if obj.updated_by:
+            full_name = obj.updated_by.get_full_name()
+            return full_name.strip() if full_name and full_name.strip() else obj.updated_by.username
+        return None
     
     def validate_name(self, value):
         """Validate tag name"""
@@ -456,11 +487,26 @@ class TagSerializer(serializers.ModelSerializer):
         return attrs
     
     def to_representation(self, instance):
+        """Customize output representation"""
+        # Check if the instance was just soft-deleted (deleted flag is True)
+        # This indicates we're in a delete response
+        if instance.deleted:
+            return {
+                'id': instance.id,
+                'name': instance.name,
+                'message': f'Tag "{instance.name}" has been deleted successfully'
+            }
+        
+        # Normal representation for other operations (GET, POST, PUT)
         data = super().to_representation(instance)
-        data['created_by'] = instance.created_by.get_full_name() if instance.created_by else None
-        data['updated_by'] = instance.updated_by.get_full_name() if instance.updated_by else None
+        
+        # Format datetime fields if needed
+        if isinstance(data.get('created_at'), str):
+            data['created_at'] = data['created_at'].replace('T', ' ').split('.')[0]
+        if isinstance(data.get('updated_at'), str):
+            data['updated_at'] = data['updated_at'].replace('T', ' ').split('.')[0]
+        
         return data
-
 
 # ======================= BLOG POST SERIALIZERS =======================
 
