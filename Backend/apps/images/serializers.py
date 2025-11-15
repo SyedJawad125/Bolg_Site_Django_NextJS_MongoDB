@@ -298,16 +298,34 @@ class ImagesSerializer(serializers.ModelSerializer):
 class PublicImagesSerializer(serializers.ModelSerializer):
     """Public-facing serializer with limited fields for anonymous users"""
     category_name = serializers.CharField(source='imagescategory.category', read_only=True)
+    category_details = serializers.SerializerMethodField()
     
     class Meta:
         model = Images
-        fields = ['id', 'title', 'image', 'alt_text', 'category_name', 'created_at']
+        fields = [
+            'id', 
+            'name', 
+            'description', 
+            'bulletsdescription', 
+            'image', 
+            'category_name', 
+            'imagescategory',
+            'category_details',
+            'created_at',
+            'updated_at'
+        ]
         read_only_fields = fields  # All fields are read-only for public
     
+    def get_category_details(self, obj):
+        """Get full category details"""
+        if obj.imagescategory and not obj.imagescategory.deleted:
+            return CategoriesListingSerializer(obj.imagescategory).data
+        return None
+    
     def to_representation(self, instance):
-        """Customize output - only show active images"""
-        # Don't show deleted or inactive images to public
-        if instance.deleted or not instance.is_active:
+        """Customize output - only show non-deleted images"""
+        # Only check for deleted images
+        if instance.deleted:
             return None
         
         data = super().to_representation(instance)
@@ -318,9 +336,33 @@ class PublicImagesSerializer(serializers.ModelSerializer):
         else:
             data['image'] = None
         
-        return data
-
-
+        # Format datetime fields
+        if isinstance(data.get('created_at'), str):
+            data['created_at'] = data['created_at'].replace('T', ' ').split('.')[0]
+        if isinstance(data.get('updated_at'), str):
+            data['updated_at'] = data['updated_at'].replace('T', ' ').split('.')[0]
+        
+        # Create a new ordered dictionary with the desired field order
+        ordered_data = {
+            'id': data.get('id'),
+            'category_name': data.get('category_name'),
+            'name': data.get('name'),
+            'description': data.get('description'),
+            'bulletsdescription': data.get('bulletsdescription'),
+            'image': data.get('image'),
+            'imagescategory': data.get('imagescategory'),
+            'category_details': data.get('category_details'),
+            'created_at': data.get('created_at'),
+            'updated_at': data.get('updated_at'),
+        }
+        
+        # Add any remaining fields that weren't in our ordered list
+        for key, value in data.items():
+            if key not in ordered_data:
+                ordered_data[key] = value
+        
+        return ordered_data
+    
 class TextBoxImagesSerializer(serializers.ModelSerializer):
     """Lightweight serializer for textbox/autocomplete components"""
     category_name = serializers.CharField(source='imagescategory.category', read_only=True)

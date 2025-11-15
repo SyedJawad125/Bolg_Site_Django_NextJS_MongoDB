@@ -45,6 +45,9 @@ class PublicImagesView(BaseView):
     serializer_class = PublicImagesSerializer
     filterset_class = PublicImagesFilter
 
+    permission_classes = [AllowAny]  # Add this line
+    authentication_classes = []  # Also disable authentication classes
+    
     def get(self, request):
         return super().get_(request)
 
