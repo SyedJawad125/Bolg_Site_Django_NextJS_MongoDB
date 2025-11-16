@@ -4,8 +4,8 @@ from utils.reusable_functions import (create_response, get_first_error, get_toke
 from rest_framework import status
 from utils.response_messages import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import (BlogPostSerializer, CampaignSerializer, CategorySerializer, CommentSerializer, MediaSerializer, NewsletterSerializer, TagSerializer) 
-from .filters import (BlogPostFilter, CampaignFilter, CategoryFilter, CommentFilter, MediaFilter, NewsletterFilter, TagFilter)
+from .serializers import (BlogPostSerializer, CampaignSerializer, CategorySerializer, CommentSerializer, MediaSerializer, NewsletterSerializer, PublicBlogPostSerializer, TagSerializer) 
+from .filters import (BlogPostFilter, CampaignFilter, CategoryFilter, CommentFilter, MediaFilter, NewsletterFilter, PublicBlogPostFilter, TagFilter)
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from config.settings import (SIMPLE_JWT, FRONTEND_BASE_URL, PASSWORD_RESET_VALIDITY)
 from django.utils import timezone
@@ -83,6 +83,16 @@ class BlogPostView(BaseView):
     @permission_required([DELETE_BLOG_POST])
     def delete(self, request):
         return super().delete_(request)
+    
+class PublicBlogPostView(BaseView):
+    serializer_class = PublicBlogPostSerializer
+    filterset_class = PublicBlogPostFilter
+
+    authentication_classes = []  
+    permission_classes = []      
+    
+    def get(self, request):
+        return super().get_(request)
 
 
 class CommentView(BaseView):

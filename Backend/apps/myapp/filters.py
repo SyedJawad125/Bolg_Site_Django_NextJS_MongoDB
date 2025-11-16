@@ -58,6 +58,37 @@ class BlogPostFilter(django_filters.FilterSet):
         model = BlogPost
         fields = []
 
+class PublicBlogPostFilter(django_filters.FilterSet):
+    title = CharFilter(field_name='title', lookup_expr='icontains')
+    subtitle = CharFilter(field_name='subtitle', lookup_expr='icontains')
+    excerpt = CharFilter(field_name='excerpt', lookup_expr='icontains')
+    content = CharFilter(field_name='content', lookup_expr='icontains')
+    
+    # FIXED: author should be CharFilter since it's a CharField, not NumberFilter
+    author = CharFilter(field_name='author', lookup_expr='icontains')
+    category = NumberFilter(field_name='category__id')
+    
+    # FIXED: Corrected ModelMultipleChoiceFilter
+    tags = ModelMultipleChoiceFilter(
+        field_name="tags__id",
+        queryset=Tag.objects.all()
+    )
+
+    status = ChoiceFilter(choices=BlogPost.STATUS_CHOICES)
+    visibility = ChoiceFilter(choices=BlogPost.VISIBILITY_CHOICES)
+
+    is_featured = BooleanFilter()
+    allow_comments = BooleanFilter()
+    is_premium = BooleanFilter()
+
+    created_at__gte = DateTimeFilter(field_name="created_at", lookup_expr='gte')
+    created_at__lte = DateTimeFilter(field_name="created_at", lookup_expr='lte')
+    published_at__gte = DateTimeFilter(field_name="published_at", lookup_expr='gte')
+    published_at__lte = DateTimeFilter(field_name="published_at", lookup_expr='lte')
+
+    class Meta:
+        model = BlogPost
+        fields = []
 
 class CommentFilter(django_filters.FilterSet):
     post_title = CharFilter(field_name='post__title', lookup_expr='icontains')

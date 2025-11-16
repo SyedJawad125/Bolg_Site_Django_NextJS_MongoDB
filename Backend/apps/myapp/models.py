@@ -35,8 +35,8 @@ class Category(TimeUserStamps):
 
 class Tag(TimeUserStamps):
     """Tags for blog posts"""
-    name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField(max_length=50, unique=True, blank=True)
+    name = models.CharField(max_length=50)
+    slug = models.SlugField(max_length=50, blank=True)
     color = models.CharField(max_length=7, default='#007bff', help_text="Hex color code")
     is_active = models.BooleanField(default=True)
     

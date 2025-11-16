@@ -644,7 +644,47 @@ class BlogPostSerializer(serializers.ModelSerializer):
         
         return data
 
-
+class PublicBlogPostSerializer(serializers.ModelSerializer):
+    """Blog post serializer for GET operations only"""
+    tags_list = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+    created_by = serializers.SerializerMethodField()
+    updated_by = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
+    featured_image = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = BlogPost
+        exclude = ['deleted']
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields read-only
+        for field in self.fields:
+            self.fields[field].read_only = True
+    
+    def get_tags_list(self, obj):
+        return TagListingSerializer(obj.tags.filter(deleted=False, is_active=True), many=True).data
+    
+    def get_comments_count(self, obj):
+        return obj.comments.filter(deleted=False, status=APPROVED).count()
+    
+    def get_created_by(self, obj):
+        return obj.created_by.get_full_name() if obj.created_by else None
+    
+    def get_updated_by(self, obj):
+        return obj.updated_by.get_full_name() if obj.updated_by else None
+    
+    def get_category(self, obj):
+        if obj.category:
+            return CategoryListingSerializer(obj.category).data
+        return None
+    
+    def get_featured_image(self, obj):
+        if obj.featured_image:
+            return f"{BACKEND_BASE_URL}{obj.featured_image.url}"
+        return None
+    
 # ======================= COMMENT SERIALIZERS =======================
 
 class CommentListingSerializer(serializers.ModelSerializer):
