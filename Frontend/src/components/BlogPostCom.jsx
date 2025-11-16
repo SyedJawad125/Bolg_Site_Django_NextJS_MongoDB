@@ -5,528 +5,8 @@
 // import AxiosInstance from "@/components/AxiosInstance";
 // import { useRouter } from 'next/navigation';
 // import { AuthContext } from '@/components/AuthContext';
-// import { Search, Plus, Filter, Eye, Edit2, Trash2, Calendar, User, Folder, TrendingUp, Tag } from 'lucide-react';
 
-// const BlogPostCom = () => {
-//   const router = useRouter();
-//   const { permissions = {} } = useContext(AuthContext);
-//   const [blogPosts, setBlogPosts] = useState([]);
-//   const [data, setData] = useState(null);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [statusFilter, setStatusFilter] = useState('');
-//   const [categoryFilter, setCategoryFilter] = useState('');
-//   const [totalPages, setTotalPages] = useState(1);
-//   const [totalCount, setTotalCount] = useState(0);
-//   const [loading, setLoading] = useState(false);
-//   const recordsPerPage = 12;
-
-//   // Check for permissions - try multiple possible permission names
-//   const hasReadPermission = permissions.read_blog_post || permissions.READ_BLOG_POST;
-//   const hasCreatePermission = permissions.create_blog_post || permissions.CREATE_BLOG_POST;
-//   const hasUpdatePermission = permissions.update_blog_post || permissions.UPDATE_BLOG_POST;
-//   const hasDeletePermission = permissions.delete_blog_post || permissions.DELETE_BLOG_POST;
-
-//   useEffect(() => {
-//     if (hasReadPermission) {
-//       fetchBlogPosts();
-//     }
-//   }, [currentPage, statusFilter, categoryFilter, hasReadPermission]);
-
-//   const fetchBlogPosts = async () => {
-//     if (!hasReadPermission) {
-//       toast.error('You do not have permission to view blog posts');
-//       return;
-//     }
-
-//     setLoading(true);
-    
-//     try {
-//       const params = {
-//         page: currentPage,
-//         limit: recordsPerPage,
-//         offset: (currentPage - 1) * recordsPerPage,
-//       };
-
-//       if (statusFilter) params.status = statusFilter;
-//       if (categoryFilter) params.category = categoryFilter;
-
-//       const res = await AxiosInstance.get('/api/myapp/v1/blog/post/', { params });
-
-//       if (res && res.data) {
-//         // Handle the response structure correctly
-//         const responseData = res.data;
-//         const posts = Array.isArray(responseData.data) 
-//           ? responseData.data 
-//           : responseData.data?.posts || [];
-        
-//         setBlogPosts(posts);
-//         setTotalPages(responseData.total_pages || Math.ceil((responseData.count || 0) / recordsPerPage) || 1);
-//         setTotalCount(responseData.count || posts.length || 0);
-//         setData(res.data);
-        
-//         if (posts.length === 0) {
-//           toast.info('No blog posts found');
-//         }
-//       } else {
-//         toast.error('Failed to load blog posts');
-//       }
-//     } catch (error) {
-//       console.error('Error fetching blog posts:', error);
-//       if (error.response?.status === 403) {
-//         toast.error('You do not have permission to view blog posts');
-//       } else {
-//         const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
-//         toast.error('Error fetching blog posts: ' + errorMessage);
-//       }
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const deleteBlogPost = async (id) => {
-//     if (!hasDeletePermission) {
-//       toast.error('You do not have permission to delete blog posts');
-//       return;
-//     }
-
-//     if (!window.confirm('Are you sure you want to delete this blog post?')) {
-//       return;
-//     }
-
-//     try {
-//       const res = await AxiosInstance.delete(`/api/myapp/v1/blog/post/?id=${id}`);
-//       if (res) {
-//         const message = res.data?.data?.message || 'Blog post deleted successfully!';
-//         toast.success(message);
-//         fetchBlogPosts();
-//       }
-//     } catch (error) {
-//       console.error('Delete error:', error);
-//       if (error.response?.status === 403) {
-//         toast.error('You do not have permission to delete blog posts');
-//       } else {
-//         toast.error('Error deleting blog post: ' + (error.response?.data?.message || error.message));
-//       }
-//     }
-//   };
-
-//   const updateBlogPost = (item) => {
-//     if (!hasUpdatePermission) {
-//       toast.error('You do not have permission to update blog posts');
-//       return;
-//     }
-//     router.push(`/updateblogpostpage?id=${item.id}`);
-//   };
-
-//   const viewBlogPost = (item) => {
-//     router.push(`/blogdetailpage?id=${item.id}`);
-//   };
-
-//   const handleSearch = (e) => {
-//     const value = e.target.value.toLowerCase();
-//     setSearchTerm(value);
-//   };
-
-//   const handleAddBlogPost = () => {
-//     if (!hasCreatePermission) {
-//       toast.error('You do not have permission to create blog posts');
-//       return;
-//     }
-//     router.push('/addblogpostpage');
-//   };
-
-//   const filteredBlogPosts = Array.isArray(blogPosts) ? blogPosts.filter((post) => {
-//     const titleMatch = post.title?.toLowerCase().includes(searchTerm);
-//     const authorMatch = post.author?.toLowerCase().includes(searchTerm);
-//     const idMatch = post.id?.toString() === searchTerm;
-//     return titleMatch || authorMatch || idMatch;
-//   }) : [];
-
-//   const getStatusBadgeColor = (status) => {
-//     switch (status) {
-//       case 'published':
-//         return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-//       case 'draft':
-//         return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-//       case 'archived':
-//         return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
-//       case 'scheduled':
-//         return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-//       default:
-//         return 'bg-slate-500/20 text-slate-400 border-slate-500/30';
-//     }
-//   };
-
-//   const formatDate = (dateString) => {
-//     if (!dateString) return 'N/A';
-//     // Handle both formats: "2025-11-15 11:56:00" and ISO format
-//     const date = new Date(dateString.replace(' ', 'T'));
-//     return date.toLocaleDateString('en-US', { 
-//       year: 'numeric', 
-//       month: 'short', 
-//       day: 'numeric' 
-//     });
-//   };
-
-//   // Access denied screen
-//   if (!hasReadPermission) {
-//     return (
-//       <div className="w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-6">
-//         <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center max-w-md">
-//           <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-//             <Eye className="w-10 h-10 text-red-400" />
-//           </div>
-//           <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
-//           <p className="text-slate-400 mb-6">
-//             You don't have permission to view Blog Posts. Please contact your administrator.
-//           </p>
-//           <p className="text-xs text-slate-500 mb-6">
-//             Required permission: READ_BLOG_POST
-//           </p>
-//           <button 
-//             onClick={() => router.push('/')}
-//             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
-//           >
-//             Return to Dashboard
-//           </button>
-//         </div>
-//         <ToastContainer 
-//           position="top-right" 
-//           autoClose={3000}
-//           theme="dark"
-//           className="mt-16"
-//         />
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="w-full h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 overflow-auto">
-//       <ToastContainer 
-//         position="top-right" 
-//         autoClose={3000}
-//         theme="dark"
-//         className="mt-16"
-//       />
-      
-//       {/* Header Section */}
-//       <div className="mb-8">
-//         <div className="flex items-center justify-between mb-6">
-//           <div>
-//             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-//               Blog Management
-//             </h1>
-//             <p className="text-slate-400 text-sm">Manage and organize your blog content</p>
-//           </div>
-
-//           {hasCreatePermission && (
-//             <button
-//               className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
-//               onClick={handleAddBlogPost}
-//             >
-//               <Plus className="w-5 h-5" />
-//               Create Post
-//             </button>
-//           )}
-//         </div>
-
-//         {/* Stats Cards */}
-//         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-//           <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 hover:border-slate-600/50 transition-all">
-//             <div className="flex items-center justify-between mb-2">
-//               <span className="text-slate-400 text-sm font-medium">Total Posts</span>
-//               <TrendingUp className="w-5 h-5 text-blue-400" />
-//             </div>
-//             <p className="text-3xl font-bold text-white">{totalCount}</p>
-//           </div>
-          
-//           <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/30 backdrop-blur-sm border border-emerald-700/30 rounded-xl p-5 hover:border-emerald-600/40 transition-all">
-//             <div className="flex items-center justify-between mb-2">
-//               <span className="text-slate-400 text-sm font-medium">Published</span>
-//               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-//             </div>
-//             <p className="text-3xl font-bold text-emerald-400">
-//               {blogPosts.filter(p => p.status === 'published').length}
-//             </p>
-//           </div>
-
-//           <div className="bg-gradient-to-br from-amber-900/20 to-amber-950/30 backdrop-blur-sm border border-amber-700/30 rounded-xl p-5 hover:border-amber-600/40 transition-all">
-//             <div className="flex items-center justify-between mb-2">
-//               <span className="text-slate-400 text-sm font-medium">Drafts</span>
-//               <Edit2 className="w-5 h-5 text-amber-400" />
-//             </div>
-//             <p className="text-3xl font-bold text-amber-400">
-//               {blogPosts.filter(p => p.status === 'draft').length}
-//             </p>
-//           </div>
-
-//           <div className="bg-gradient-to-br from-purple-900/20 to-purple-950/30 backdrop-blur-sm border border-purple-700/30 rounded-xl p-5 hover:border-purple-600/40 transition-all">
-//             <div className="flex items-center justify-between mb-2">
-//               <span className="text-slate-400 text-sm font-medium">Pages</span>
-//               <Folder className="w-5 h-5 text-purple-400" />
-//             </div>
-//             <p className="text-3xl font-bold text-purple-400">{totalPages}</p>
-//           </div>
-//         </div>
-
-//         {/* Search and Filters */}
-//         <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5">
-//           <div className="flex flex-wrap gap-4 items-center">
-//             <div className="flex-1 min-w-[250px] relative">
-//               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-//               <input
-//                 type="text"
-//                 placeholder="Search by title, author, or ID..."
-//                 value={searchTerm}
-//                 onChange={handleSearch}
-//                 className="w-full pl-12 pr-4 py-3 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-500"
-//               />
-//             </div>
-
-//             <div className="flex items-center gap-2">
-//               <Filter className="w-5 h-5 text-slate-400" />
-//               <select
-//                 value={statusFilter}
-//                 onChange={(e) => {
-//                   setStatusFilter(e.target.value);
-//                   setCurrentPage(1);
-//                 }}
-//                 className="px-4 py-3 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all cursor-pointer"
-//               >
-//                 <option value="">All Status</option>
-//                 <option value="published">Published</option>
-//                 <option value="draft">Draft</option>
-//                 <option value="archived">Archived</option>
-//                 <option value="scheduled">Scheduled</option>
-//               </select>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Loading State */}
-//       {loading && (
-//         <div className="flex flex-col items-center justify-center py-20">
-//           <div className="relative">
-//             <div className="w-16 h-16 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
-//             <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
-//           </div>
-//           <p className="mt-6 text-slate-400 font-medium">Loading blog posts...</p>
-//         </div>
-//       )}
-
-//       {/* Blog Posts List */}
-//       {!loading && (
-//         <div className="space-y-4">
-//           {filteredBlogPosts.length > 0 ? (
-//             <>
-//               {filteredBlogPosts.map((post) => (
-//                 <div
-//                   key={post.id}
-//                   className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden hover:border-slate-600/60 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/5"
-//                 >
-//                   <div className="p-6">
-//                     <div className="flex items-start justify-between gap-4">
-//                       <div className="flex-1 min-w-0">
-//                         {/* Title & ID */}
-//                         <div className="flex items-center gap-3 mb-3">
-//                           <span className="px-3 py-1 bg-slate-700/50 text-slate-400 text-xs font-mono rounded-md border border-slate-600/30">
-//                             #{post.id}
-//                           </span>
-//                           <h3 className="text-xl font-bold text-white truncate flex-1" title={post.title}>
-//                             {post.title}
-//                           </h3>
-//                         </div>
-
-//                         {/* Subtitle */}
-//                         {post.subtitle && (
-//                           <p className="text-slate-400 text-sm mb-4 line-clamp-2" title={post.subtitle}>
-//                             {post.subtitle}
-//                           </p>
-//                         )}
-
-//                         {/* Meta Info */}
-//                         <div className="flex flex-wrap items-center gap-4 text-sm mb-3">
-//                           <div className="flex items-center gap-2 text-slate-400">
-//                             <User className="w-4 h-4" />
-//                             <span>{post.author || 'Unknown'}</span>
-//                           </div>
-
-//                           {post.category && (
-//                             <div className="flex items-center gap-2 text-slate-400">
-//                               <Folder className="w-4 h-4" />
-//                               <span>{post.category.name || 'Uncategorized'}</span>
-//                             </div>
-//                           )}
-
-//                           <div className="flex items-center gap-2 text-slate-400">
-//                             <Calendar className="w-4 h-4" />
-//                             <span>{formatDate(post.published_at || post.created_at)}</span>
-//                           </div>
-
-//                           <div className="flex items-center gap-2 text-slate-400">
-//                             <Eye className="w-4 h-4" />
-//                             <span>{post.view_count || 0} views</span>
-//                           </div>
-
-//                           <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeColor(post.status)}`}>
-//                             {post.status}
-//                           </span>
-//                         </div>
-
-//                         {/* Tags */}
-//                         {post.tags_list && post.tags_list.length > 0 && (
-//                           <div className="flex items-center gap-2 flex-wrap">
-//                             <Tag className="w-4 h-4 text-slate-500" />
-//                             {post.tags_list.map((tag) => (
-//                               <span
-//                                 key={tag.id}
-//                                 className="px-2 py-1 text-xs rounded-md border"
-//                                 style={{
-//                                   backgroundColor: `${tag.color}20`,
-//                                   borderColor: `${tag.color}40`,
-//                                   color: tag.color
-//                                 }}
-//                               >
-//                                 {tag.name}
-//                               </span>
-//                             ))}
-//                           </div>
-//                         )}
-//                       </div>
-
-//                       {/* Action Buttons */}
-//                       <div className="flex items-center gap-2">
-//                         <button
-//                           className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg transition-all hover:scale-105"
-//                           onClick={() => viewBlogPost(post)}
-//                           title="View"
-//                         >
-//                           <Eye className="w-5 h-5" />
-//                         </button>
-
-//                         {hasUpdatePermission && (
-//                           <button
-//                             className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all hover:scale-105"
-//                             onClick={() => updateBlogPost(post)}
-//                             title="Edit"
-//                           >
-//                             <Edit2 className="w-5 h-5" />
-//                           </button>
-//                         )}
-
-//                         {hasDeletePermission && (
-//                           <button
-//                             className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all hover:scale-105"
-//                             onClick={() => deleteBlogPost(post.id)}
-//                             title="Delete"
-//                           >
-//                             <Trash2 className="w-5 h-5" />
-//                           </button>
-//                         )}
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))}
-
-//               {/* Pagination */}
-//               {totalPages > 1 && (
-//                 <div className="flex justify-center items-center gap-2 mt-8 pb-6">
-//                   <button
-//                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-//                     disabled={currentPage === 1}
-//                     className={`px-4 py-2 rounded-lg font-medium transition-all ${
-//                       currentPage === 1 
-//                         ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed border border-slate-700/30' 
-//                         : 'bg-slate-800/50 text-white hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
-//                     }`}
-//                   >
-//                     Previous
-//                   </button>
-
-//                   <div className="flex gap-2">
-//                     {Array.from({ length: Math.min(totalPages, 5) }, (_, index) => {
-//                       let pageNum;
-//                       if (totalPages <= 5) {
-//                         pageNum = index + 1;
-//                       } else if (currentPage <= 3) {
-//                         pageNum = index + 1;
-//                       } else if (currentPage >= totalPages - 2) {
-//                         pageNum = totalPages - 4 + index;
-//                       } else {
-//                         pageNum = currentPage - 2 + index;
-//                       }
-
-//                       return (
-//                         <button
-//                           key={pageNum}
-//                           onClick={() => setCurrentPage(pageNum)}
-//                           className={`w-10 h-10 rounded-lg font-medium transition-all ${
-//                             currentPage === pageNum 
-//                               ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
-//                               : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
-//                           }`}
-//                         >
-//                           {pageNum}
-//                         </button>
-//                       );
-//                     })}
-//                   </div>
-
-//                   <button
-//                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-//                     disabled={currentPage === totalPages}
-//                     className={`px-4 py-2 rounded-lg font-medium transition-all ${
-//                       currentPage === totalPages 
-//                         ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed border border-slate-700/30' 
-//                         : 'bg-slate-800/50 text-white hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
-//                     }`}
-//                   >
-//                     Next
-//                   </button>
-//                 </div>
-//               )}
-//             </>
-//           ) : (
-//             <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center">
-//               <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
-//                 <Folder className="w-10 h-10 text-slate-600" />
-//               </div>
-//               <h3 className="text-xl font-semibold text-white mb-2">No blog posts found</h3>
-//               <p className="text-slate-400 mb-6">Get started by creating your first blog post</p>
-//               {hasCreatePermission && (
-//                 <button
-//                   className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
-//                   onClick={handleAddBlogPost}
-//                 >
-//                   <Plus className="w-5 h-5" />
-//                   Create Your First Post
-//                 </button>
-//               )}
-//             </div>
-//           )}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default BlogPostCom;
-
-
-
-
-
-
-// 'use client';
-// import React, { useEffect, useState, useContext } from 'react';
-// import { ToastContainer, toast } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-// import { useRouter } from 'next/navigation';
-
-// // Icons
+// // Icons (same as before)
 // const Search = ({ className }) => (
 //   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -596,6 +76,7 @@
 
 // const BlogPostCom = () => {
 //   const router = useRouter();
+//   const { permissions = {} } = useContext(AuthContext);
 //   const [blogPosts, setBlogPosts] = useState([]);
 //   const [searchTerm, setSearchTerm] = useState('');
 //   const [currentPage, setCurrentPage] = useState(1);
@@ -605,17 +86,17 @@
 //   const [loading, setLoading] = useState(false);
 //   const recordsPerPage = 12;
 
-//   // Mock permissions - replace with your actual permission logic
-//   const hasReadPermission = true;
-//   const hasCreatePermission = true;
-//   const hasUpdatePermission = true;
-//   const hasDeletePermission = true;
+//   // Permission checks based on your backend permissions
+//   const hasReadPermission = permissions.read_blog_post || permissions.READ_BLOG_POST;
+//   const hasCreatePermission = permissions.create_blog_post || permissions.CREATE_BLOG_POST;
+//   const hasUpdatePermission = permissions.update_blog_post || permissions.UPDATE_BLOG_POST;
+//   const hasDeletePermission = permissions.delete_blog_post || permissions.DELETE_BLOG_POST;
 
 //   useEffect(() => {
 //     if (hasReadPermission) {
 //       fetchBlogPosts();
 //     }
-//   }, [currentPage, statusFilter]);
+//   }, [currentPage, statusFilter, hasReadPermission]);
 
 //   const fetchBlogPosts = async () => {
 //     if (!hasReadPermission) {
@@ -626,83 +107,42 @@
 //     setLoading(true);
     
 //     try {
-//       // Mock API call - replace with your actual AxiosInstance
-//       // const params = {
-//       //   page: currentPage,
-//       //   limit: recordsPerPage,
-//       //   offset: (currentPage - 1) * recordsPerPage,
-//       // };
-//       // if (statusFilter) params.status = statusFilter;
-//       // const res = await AxiosInstance.get('/api/myapp/v1/blog/post/', { params });
-
-//       // Mock data for demonstration
-//       const mockData = {
-//         message: "Successful",
-//         count: 3,
-//         data: [
-//           {
-//             id: 3,
-//             tags_list: [
-//               {
-//                 id: 1,
-//                 name: "Deep Learning",
-//                 slug: "deep-learning",
-//                 color: "#306998"
-//               }
-//             ],
-//             comments_count: 0,
-//             created_at: "2025-11-15 11:56:00",
-//             updated_at: "2025-11-15 11:56:00",
-//             title: "Deep Learning Guide",
-//             slug: "deep-learning",
-//             subtitle: "A beginner's guide to understanding Generative AI",
-//             content: "Generative AI is a field of AI that creates new data",
-//             excerpt: "This post explains the fundamentals of Generative AI",
-//             author: "SJAS",
-//             featured_image: null,
-//             featured_image_alt: "AI generated neural network image",
-//             status: "published",
-//             visibility: "public",
-//             password: "",
-//             meta_title: "Generative AI Beginner Guide",
-//             meta_description: "Learn what Generative AI is and how it works",
-//             canonical_url: "https://example.com/blog/getting-started",
-//             view_count: 0,
-//             reading_time: 7,
-//             published_at: "2025-09-11 10:00:00",
-//             scheduled_at: null,
-//             is_featured: true,
-//             allow_comments: true,
-//             is_premium: false,
-//             created_by: "Jawad Ali",
-//             updated_by: null,
-//             category: {
-//               id: 5,
-//               name: "Information Technology2",
-//               slug: "information-technology2",
-//               image: null,
-//               is_active: true,
-//               subcategories_count: 0
-//             },
-//             tags: [1]
-//           }
-//         ]
+//       const params = {
+//         page: currentPage,
+//         limit: recordsPerPage,
 //       };
-
-//       // Replace this with actual API response handling
-//       const responseData = mockData;
-//       const posts = Array.isArray(responseData.data) ? responseData.data : [];
       
-//       setBlogPosts(posts);
-//       setTotalPages(responseData.total_pages || Math.ceil((responseData.count || 0) / recordsPerPage) || 1);
-//       setTotalCount(responseData.count || posts.length || 0);
-      
-//       if (posts.length === 0) {
-//         toast.info('No blog posts found');
+//       if (statusFilter) {
+//         params.status = statusFilter;
 //       }
+
+//       const res = await AxiosInstance.get('/api/myapp/v1/blog/post/', { params });
+
+//       // Handle the exact response structure from your backend
+//       if (res?.data?.data && Array.isArray(res.data.data)) {
+//         setBlogPosts(res.data.data);
+//         setTotalCount(res.data.count || res.data.data.length);
+//         setTotalPages(Math.ceil((res.data.count || res.data.data.length) / recordsPerPage));
+//       } else {
+//         console.error('Unexpected response structure:', res);
+//         toast.error('Received unexpected data format from server');
+//         setBlogPosts([]);
+//         setTotalPages(1);
+//         setTotalCount(0);
+//       }
+      
 //     } catch (error) {
 //       console.error('Error fetching blog posts:', error);
-//       toast.error('Error fetching blog posts');
+//       if (error.response?.status === 403) {
+//         toast.error('You do not have permission to view blog posts');
+//       } else if (error.response?.status === 401) {
+//         toast.error('Please login to access blog posts');
+//       } else {
+//         toast.error(error.response?.data?.message || 'Error fetching blog posts');
+//       }
+//       setBlogPosts([]);
+//       setTotalPages(1);
+//       setTotalCount(0);
 //     } finally {
 //       setLoading(false);
 //     }
@@ -719,12 +159,20 @@
 //     }
 
 //     try {
-//       // const res = await AxiosInstance.delete(`/api/myapp/v1/blog/post/?id=${id}`);
-//       toast.success('Blog post deleted successfully!');
-//       fetchBlogPosts();
+//       const res = await AxiosInstance.delete(`/api/myapp/v1/blog/post/?id=${id}`);
+//       if (res) {
+//         toast.success('Blog post deleted successfully!');
+//         fetchBlogPosts();
+//       }
 //     } catch (error) {
 //       console.error('Delete error:', error);
-//       toast.error('Error deleting blog post');
+//       if (error.response?.status === 403) {
+//         toast.error('You do not have permission to delete blog posts');
+//       } else if (error.response?.status === 404) {
+//         toast.error('Blog post not found');
+//       } else {
+//         toast.error(error.response?.data?.message || 'Error deleting blog post');
+//       }
 //     }
 //   };
 
@@ -757,8 +205,12 @@
 //     if (!post) return false;
 //     const titleMatch = post.title?.toLowerCase().includes(searchTerm);
 //     const authorMatch = post.author?.toLowerCase().includes(searchTerm);
+//     const createdByMatch = post.created_by?.toLowerCase().includes(searchTerm);
+//     const contentMatch = post.content?.toLowerCase().includes(searchTerm);
+//     const categoryMatch = post.category?.name?.toLowerCase().includes(searchTerm);
 //     const idMatch = post.id?.toString() === searchTerm;
-//     return titleMatch || authorMatch || idMatch;
+    
+//     return titleMatch || authorMatch || createdByMatch || contentMatch || categoryMatch || idMatch;
 //   }) : [];
 
 //   const getStatusBadgeColor = (status) => {
@@ -790,6 +242,11 @@
 //     }
 //   };
 
+//   // Calculate stats based on actual data
+//   const publishedCount = blogPosts.filter(p => p?.status === 'published').length;
+//   const draftCount = blogPosts.filter(p => p?.status === 'draft').length;
+//   const uniqueCategoriesCount = new Set(blogPosts.map(p => p.category?.id).filter(Boolean)).size;
+
 //   if (!hasReadPermission) {
 //     return (
 //       <div className="w-full h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-6">
@@ -801,11 +258,21 @@
 //           <p className="text-slate-400 mb-6">
 //             You don't have permission to view Blog Posts. Please contact your administrator.
 //           </p>
+//           <p className="text-xs text-slate-500 mb-6">
+//             Required permission: READ_BLOG_POST
+//           </p>
+//           <button 
+//             onClick={() => router.push('/')}
+//             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
+//           >
+//             Return to Dashboard
+//           </button>
 //         </div>
 //         <ToastContainer 
 //           position="top-right" 
 //           autoClose={3000}
 //           theme="dark"
+//           className="mt-16"
 //         />
 //       </div>
 //     );
@@ -817,6 +284,7 @@
 //         position="top-right" 
 //         autoClose={3000}
 //         theme="dark"
+//         className="mt-16"
 //       />
       
 //       <div className="max-w-7xl mx-auto">
@@ -856,9 +324,7 @@
 //                 <span className="text-slate-400 text-sm font-medium">Published</span>
 //                 <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
 //               </div>
-//               <p className="text-3xl font-bold text-emerald-400">
-//                 {blogPosts.filter(p => p?.status === 'published').length}
-//               </p>
+//               <p className="text-3xl font-bold text-emerald-400">{publishedCount}</p>
 //             </div>
 
 //             <div className="bg-gradient-to-br from-amber-900/20 to-amber-950/30 backdrop-blur-sm border border-amber-700/30 rounded-xl p-5 hover:border-amber-600/40 transition-all">
@@ -866,17 +332,15 @@
 //                 <span className="text-slate-400 text-sm font-medium">Drafts</span>
 //                 <Edit2 className="w-5 h-5 text-amber-400" />
 //               </div>
-//               <p className="text-3xl font-bold text-amber-400">
-//                 {blogPosts.filter(p => p?.status === 'draft').length}
-//               </p>
+//               <p className="text-3xl font-bold text-amber-400">{draftCount}</p>
 //             </div>
 
 //             <div className="bg-gradient-to-br from-purple-900/20 to-purple-950/30 backdrop-blur-sm border border-purple-700/30 rounded-xl p-5 hover:border-purple-600/40 transition-all">
 //               <div className="flex items-center justify-between mb-2">
-//                 <span className="text-slate-400 text-sm font-medium">Pages</span>
+//                 <span className="text-slate-400 text-sm font-medium">Categories</span>
 //                 <Folder className="w-5 h-5 text-purple-400" />
 //               </div>
-//               <p className="text-3xl font-bold text-purple-400">{totalPages}</p>
+//               <p className="text-3xl font-bold text-purple-400">{uniqueCategoriesCount}</p>
 //             </div>
 //           </div>
 
@@ -887,7 +351,7 @@
 //                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
 //                 <input
 //                   type="text"
-//                   placeholder="Search by title, author, or ID..."
+//                   placeholder="Search by title, author, content, category, or ID..."
 //                   value={searchTerm}
 //                   onChange={handleSearch}
 //                   className="w-full pl-12 pr-4 py-3 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-500"
@@ -920,6 +384,7 @@
 //           <div className="flex flex-col items-center justify-center py-20">
 //             <div className="relative">
 //               <div className="w-16 h-16 border-4 border-slate-700 border-t-blue-500 rounded-full animate-spin"></div>
+//               <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
 //             </div>
 //             <p className="mt-6 text-slate-400 font-medium">Loading blog posts...</p>
 //           </div>
@@ -945,6 +410,11 @@
 //                             <h3 className="text-xl font-bold text-white truncate flex-1">
 //                               {post.title}
 //                             </h3>
+//                             {post.is_featured && (
+//                               <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-semibold rounded-md border border-yellow-500/30">
+//                                 Featured
+//                               </span>
+//                             )}
 //                           </div>
 
 //                           {post.subtitle && (
@@ -956,13 +426,13 @@
 //                           <div className="flex flex-wrap items-center gap-4 text-sm mb-3">
 //                             <div className="flex items-center gap-2 text-slate-400">
 //                               <User className="w-4 h-4" />
-//                               <span>{post.author || 'Unknown'}</span>
+//                               <span>{post.created_by || post.author || 'Unknown'}</span>
 //                             </div>
 
 //                             {post.category && (
 //                               <div className="flex items-center gap-2 text-slate-400">
 //                                 <Folder className="w-4 h-4" />
-//                                 <span>{post.category.name || 'Uncategorized'}</span>
+//                                 <span>{post.category.name}</span>
 //                               </div>
 //                             )}
 
@@ -976,8 +446,16 @@
 //                               <span>{post.view_count || 0} views</span>
 //                             </div>
 
+//                             <div className="flex items-center gap-2 text-slate-400">
+//                               <span>{post.reading_time || 0} min read</span>
+//                             </div>
+
+//                             <div className="flex items-center gap-2 text-slate-400">
+//                               <span>{post.comments_count || 0} comments</span>
+//                             </div>
+
 //                             <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeColor(post.status)}`}>
-//                               {post.status}
+//                               {post.status?.charAt(0).toUpperCase() + post.status?.slice(1)}
 //                             </span>
 //                           </div>
 
@@ -1005,6 +483,7 @@
 //                           <button
 //                             className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg transition-all"
 //                             onClick={() => viewBlogPost(post)}
+//                             title="View Post"
 //                           >
 //                             <Eye className="w-5 h-5" />
 //                           </button>
@@ -1013,6 +492,7 @@
 //                             <button
 //                               className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all"
 //                               onClick={() => updateBlogPost(post)}
+//                               title="Edit Post"
 //                             >
 //                               <Edit2 className="w-5 h-5" />
 //                             </button>
@@ -1022,6 +502,7 @@
 //                             <button
 //                               className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all"
 //                               onClick={() => deleteBlogPost(post.id)}
+//                               title="Delete Post"
 //                             >
 //                               <Trash2 className="w-5 h-5" />
 //                             </button>
@@ -1039,8 +520,8 @@
 //                       disabled={currentPage === 1}
 //                       className={`px-4 py-2 rounded-lg font-medium transition-all ${
 //                         currentPage === 1 
-//                           ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed' 
-//                           : 'bg-slate-800/50 text-white hover:bg-slate-700/50'
+//                           ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed border border-slate-700/30' 
+//                           : 'bg-slate-800/50 text-white hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
 //                       }`}
 //                     >
 //                       Previous
@@ -1055,8 +536,8 @@
 //                       disabled={currentPage === totalPages}
 //                       className={`px-4 py-2 rounded-lg font-medium transition-all ${
 //                         currentPage === totalPages 
-//                           ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed' 
-//                           : 'bg-slate-800/50 text-white hover:bg-slate-700/50'
+//                           ? 'bg-slate-800/30 text-slate-600 cursor-not-allowed border border-slate-700/30' 
+//                           : 'bg-slate-800/50 text-white hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
 //                       }`}
 //                     >
 //                       Next
@@ -1067,8 +548,21 @@
 //             ) : (
 //               <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center">
 //                 <Folder className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-//                 <h3 className="text-xl font-semibold text-white mb-2">No blog posts found</h3>
-//                 <p className="text-slate-400">Get started by creating your first blog post</p>
+//                 <h3 className="text-xl font-semibold text-white mb-2">
+//                   {searchTerm ? 'No blog posts found matching your search' : 'No blog posts found'}
+//                 </h3>
+//                 <p className="text-slate-400">
+//                   {searchTerm ? 'Try adjusting your search terms' : 'Get started by creating your first blog post'}
+//                 </p>
+//                 {hasCreatePermission && !searchTerm && (
+//                   <button
+//                     className="inline-flex items-center gap-2 mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
+//                     onClick={handleAddBlogPost}
+//                   >
+//                     <Plus className="w-5 h-5" />
+//                     Create Your First Post
+//                   </button>
+//                 )}
 //               </div>
 //             )}
 //           </div>
@@ -1082,6 +576,7 @@
 
 
 
+
 'use client';
 import React, { useEffect, useState, useContext } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
@@ -1090,7 +585,7 @@ import AxiosInstance from "@/components/AxiosInstance";
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/components/AuthContext';
 
-// Icons (same as before)
+// Icons
 const Search = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1170,7 +665,7 @@ const BlogPostCom = () => {
   const [loading, setLoading] = useState(false);
   const recordsPerPage = 12;
 
-  // Permission checks based on your backend permissions
+  // Permission checks
   const hasReadPermission = permissions.read_blog_post || permissions.READ_BLOG_POST;
   const hasCreatePermission = permissions.create_blog_post || permissions.CREATE_BLOG_POST;
   const hasUpdatePermission = permissions.update_blog_post || permissions.UPDATE_BLOG_POST;
@@ -1202,7 +697,6 @@ const BlogPostCom = () => {
 
       const res = await AxiosInstance.get('/api/myapp/v1/blog/post/', { params });
 
-      // Handle the exact response structure from your backend
       if (res?.data?.data && Array.isArray(res.data.data)) {
         setBlogPosts(res.data.data);
         setTotalCount(res.data.count || res.data.data.length);
@@ -1326,7 +820,7 @@ const BlogPostCom = () => {
     }
   };
 
-  // Calculate stats based on actual data
+  // Calculate stats
   const publishedCount = blogPosts.filter(p => p?.status === 'published').length;
   const draftCount = blogPosts.filter(p => p?.status === 'draft').length;
   const uniqueCategoriesCount = new Set(blogPosts.map(p => p.category?.id).filter(Boolean)).size;
@@ -1474,7 +968,7 @@ const BlogPostCom = () => {
           </div>
         )}
 
-        {/* Blog Posts List */}
+        {/* Blog Posts List with Images */}
         {!loading && (
           <div className="space-y-4">
             {filteredBlogPosts.length > 0 ? (
@@ -1482,123 +976,160 @@ const BlogPostCom = () => {
                 {filteredBlogPosts.map((post) => (
                   <div
                     key={post.id}
-                    className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden hover:border-slate-600/60 transition-all duration-300"
+                    className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden hover:border-slate-600/60 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10 group"
                   >
-                    <div className="p-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="px-3 py-1 bg-slate-700/50 text-slate-400 text-xs font-mono rounded-md border border-slate-600/30">
-                              #{post.id}
-                            </span>
-                            <h3 className="text-xl font-bold text-white truncate flex-1">
+                    <div className="flex gap-6 p-6">
+                      {/* Featured Image */}
+                      <div className="flex-shrink-0">
+                        <div className="relative w-72 h-48 rounded-lg overflow-hidden bg-slate-800/50 border border-slate-700/50 group-hover:border-blue-500/30 transition-all">
+                          {post.featured_image ? (
+                            <>
+                              <img
+                                src={post.featured_image}
+                                alt={post.featured_image_alt || post.title}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                onError={(e) => {
+                                  e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"%3E%3Crect fill="%23334155" width="400" height="300"/%3E%3Ctext fill="%2394a3b8" font-family="Arial" font-size="18" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+                                }}
+                              />
+                              {post.is_featured && (
+                                <div className="absolute top-3 left-3 px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-lg shadow-lg flex items-center gap-1.5">
+                                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                  Featured
+                                </div>
+                              )}
+                              <div className="absolute top-3 right-3 px-2.5 py-1 bg-slate-900/80 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-md border border-slate-700/50">
+                                {post.reading_time || 0} min read
+                              </div>
+                            </>
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-600">
+                              <svg className="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <span className="text-sm font-medium">No Image</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content Section */}
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="px-2.5 py-1 bg-slate-700/50 text-slate-400 text-xs font-mono rounded-md border border-slate-600/30">
+                                #{post.id}
+                              </span>
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeColor(post.status)}`}>
+                                {post.status?.charAt(0).toUpperCase() + post.status?.slice(1)}
+                              </span>
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-2 line-clamp-2 group-hover:text-blue-400 transition-colors" title={post.title}>
                               {post.title}
                             </h3>
-                            {post.is_featured && (
-                              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-semibold rounded-md border border-yellow-500/30">
-                                Featured
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="p-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg transition-all hover:scale-110"
+                              onClick={() => viewBlogPost(post)}
+                              title="View Post"
+                            >
+                              <Eye className="w-5 h-5" />
+                            </button>
+
+                            {hasUpdatePermission && (
+                              <button
+                                className="p-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all hover:scale-110"
+                                onClick={() => updateBlogPost(post)}
+                                title="Edit Post"
+                              >
+                                <Edit2 className="w-5 h-5" />
+                              </button>
+                            )}
+
+                            {hasDeletePermission && (
+                              <button
+                                className="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all hover:scale-110"
+                                onClick={() => deleteBlogPost(post.id)}
+                                title="Delete Post"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Subtitle */}
+                        {post.subtitle && (
+                          <p className="text-slate-400 text-sm mb-4 line-clamp-2 leading-relaxed" title={post.subtitle}>
+                            {post.subtitle}
+                          </p>
+                        )}
+
+                        {/* Meta Information */}
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm mb-4">
+                          <div className="flex items-center gap-2 text-slate-400 hover:text-slate-300 transition-colors">
+                            <User className="w-4 h-4" />
+                            <span className="font-medium">{post.created_by || post.author || 'Unknown'}</span>
+                          </div>
+
+                          {post.category && (
+                            <div className="flex items-center gap-2 text-slate-400 hover:text-blue-400 transition-colors cursor-pointer">
+                              <Folder className="w-4 h-4" />
+                              <span>{post.category.name}</span>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <Calendar className="w-4 h-4" />
+                            <span>{formatDate(post.published_at || post.created_at)}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <Eye className="w-4 h-4" />
+                            <span>{post.view_count || 0} views</span>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                            <span>{post.comments_count || 0} comments</span>
+                          </div>
+                        </div>
+
+                        {/* Tags */}
+                        {post.tags_list && Array.isArray(post.tags_list) && post.tags_list.length > 0 && (
+                          <div className="flex items-center gap-2 flex-wrap mt-auto pt-3 border-t border-slate-700/50">
+                            <Tag className="w-4 h-4 text-slate-500" />
+                            {post.tags_list.map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="px-2.5 py-1 text-xs font-medium rounded-md border transition-all hover:scale-105 cursor-pointer"
+                                style={{
+                                  backgroundColor: `${tag.color}15`,
+                                  borderColor: `${tag.color}40`,
+                                  color: tag.color
+                                }}
+                              >
+                                {tag.name}
                               </span>
-                            )}
+                            ))}
                           </div>
-
-                          {post.subtitle && (
-                            <p className="text-slate-400 text-sm mb-4 line-clamp-2">
-                              {post.subtitle}
-                            </p>
-                          )}
-
-                          <div className="flex flex-wrap items-center gap-4 text-sm mb-3">
-                            <div className="flex items-center gap-2 text-slate-400">
-                              <User className="w-4 h-4" />
-                              <span>{post.created_by || post.author || 'Unknown'}</span>
-                            </div>
-
-                            {post.category && (
-                              <div className="flex items-center gap-2 text-slate-400">
-                                <Folder className="w-4 h-4" />
-                                <span>{post.category.name}</span>
-                              </div>
-                            )}
-
-                            <div className="flex items-center gap-2 text-slate-400">
-                              <Calendar className="w-4 h-4" />
-                              <span>{formatDate(post.published_at || post.created_at)}</span>
-                            </div>
-
-                            <div className="flex items-center gap-2 text-slate-400">
-                              <Eye className="w-4 h-4" />
-                              <span>{post.view_count || 0} views</span>
-                            </div>
-
-                            <div className="flex items-center gap-2 text-slate-400">
-                              <span>{post.reading_time || 0} min read</span>
-                            </div>
-
-                            <div className="flex items-center gap-2 text-slate-400">
-                              <span>{post.comments_count || 0} comments</span>
-                            </div>
-
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeColor(post.status)}`}>
-                              {post.status?.charAt(0).toUpperCase() + post.status?.slice(1)}
-                            </span>
-                          </div>
-
-                          {post.tags_list && Array.isArray(post.tags_list) && post.tags_list.length > 0 && (
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Tag className="w-4 h-4 text-slate-500" />
-                              {post.tags_list.map((tag) => (
-                                <span
-                                  key={tag.id}
-                                  className="px-2 py-1 text-xs rounded-md border"
-                                  style={{
-                                    backgroundColor: `${tag.color}20`,
-                                    borderColor: `${tag.color}40`,
-                                    color: tag.color
-                                  }}
-                                >
-                                  {tag.name}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg transition-all"
-                            onClick={() => viewBlogPost(post)}
-                            title="View Post"
-                          >
-                            <Eye className="w-5 h-5" />
-                          </button>
-
-                          {hasUpdatePermission && (
-                            <button
-                              className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all"
-                              onClick={() => updateBlogPost(post)}
-                              title="Edit Post"
-                            >
-                              <Edit2 className="w-5 h-5" />
-                            </button>
-                          )}
-
-                          {hasDeletePermission && (
-                            <button
-                              className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg transition-all"
-                              onClick={() => deleteBlogPost(post.id)}
-                              title="Delete Post"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 ))}
 
+                {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex justify-center items-center gap-2 mt-8">
+                  <div className="flex justify-center items-center gap-2 mt-8 pb-6">
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
@@ -1611,9 +1142,34 @@ const BlogPostCom = () => {
                       Previous
                     </button>
 
-                    <span className="text-slate-400 px-4">
-                      Page {currentPage} of {totalPages}
-                    </span>
+                    <div className="flex gap-2">
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, index) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = index + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = index + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + index;
+                        } else {
+                          pageNum = currentPage - 2 + index;
+                        }
+
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`w-10 h-10 rounded-lg font-medium transition-all ${
+                              currentPage === pageNum 
+                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
+                                : 'bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
 
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
@@ -1631,16 +1187,18 @@ const BlogPostCom = () => {
               </>
             ) : (
               <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center">
-                <Folder className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+                <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Folder className="w-10 h-10 text-slate-600" />
+                </div>
                 <h3 className="text-xl font-semibold text-white mb-2">
                   {searchTerm ? 'No blog posts found matching your search' : 'No blog posts found'}
                 </h3>
-                <p className="text-slate-400">
+                <p className="text-slate-400 mb-6">
                   {searchTerm ? 'Try adjusting your search terms' : 'Get started by creating your first blog post'}
                 </p>
                 {hasCreatePermission && !searchTerm && (
                   <button
-                    className="inline-flex items-center gap-2 mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
+                    className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 hover:scale-105"
                     onClick={handleAddBlogPost}
                   >
                     <Plus className="w-5 h-5" />
