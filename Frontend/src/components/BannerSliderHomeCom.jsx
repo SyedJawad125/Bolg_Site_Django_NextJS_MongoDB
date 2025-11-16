@@ -261,7 +261,8 @@ const BlogLuxuryBanner = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="relative w-full h-[calc(99vh-6rem)] flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="relative w-full h-[calc(102vh-6rem)] flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/*  <div className="relative w-full h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"> */}
         <ToastContainer 
           position="top-right" 
           autoClose={3000}
@@ -282,7 +283,7 @@ const BlogLuxuryBanner = () => {
   // No banners state
   if (banners.length === 0) {
     return (
-      <div className="relative w-full h-[calc(99vh-6rem)] flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="relative w-full h-[calc(102vh-6rem)] flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
         <ToastContainer 
           position="top-right" 
           autoClose={3000}
@@ -368,7 +369,7 @@ const BlogLuxuryBanner = () => {
         {banners.map((banner) => (
           <div key={banner.id} className="relative group">
             {/* Image with parallax effect */}
-            <div className="w-full h-[calc(99vh-6rem)] overflow-hidden">
+            <div className="w-full h-[calc(102vh-6rem)] overflow-hidden">
               <img
                 src={banner.image}
                 alt={banner.name}
