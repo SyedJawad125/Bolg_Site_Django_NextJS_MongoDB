@@ -20,7 +20,7 @@ export default function Home() {
     <BannerSliderHomeCom />
     <BlogListPage/>
     {/* <LeftSideSliderCom /> */}
-    <ContentpageHome/>
+    {/* <ContentpageHome/> */}
     <FooterCom />
   </>
   );
