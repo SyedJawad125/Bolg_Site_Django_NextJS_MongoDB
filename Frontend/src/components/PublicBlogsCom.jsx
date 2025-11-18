@@ -56,7 +56,7 @@ export default function BlogsPage() {
           views: blog.view_count || 0,
           commentsCount: blog.comments_count || 0,
           status: blog.status || 'published',
-          likes: Math.floor(Math.random() * 100) + 10 // Random likes for demo
+          likes: Math.floor(Math.random() * 100) + 10
         }));
         
         setBlogData(transformedBlogs);
@@ -123,9 +123,8 @@ export default function BlogsPage() {
   // Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-rose-50/20 flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5"></div>
-        <div className="text-center relative z-10">
+      <div className="min-h-screen bg-white flex items-center justify-center relative">
+        <div className="text-center">
           <div className="relative">
             <Loader className="w-16 h-16 text-amber-600 animate-spin mx-auto mb-6" />
             <Sparkles className="w-8 h-8 text-amber-400 absolute -top-2 -right-2 animate-pulse" />
@@ -141,9 +140,8 @@ export default function BlogsPage() {
   // Error State
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-rose-50/20 flex items-center justify-center p-6 relative">
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5"></div>
-        <div className="max-w-md text-center bg-white/80 backdrop-blur-xl rounded-3xl p-12 border border-amber-200/50 shadow-2xl relative z-10">
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
+        <div className="max-w-md text-center bg-white rounded-3xl p-12 border border-amber-200 shadow-2xl">
           <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-rose-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
             <span className="text-amber-600 text-2xl">✨</span>
           </div>
@@ -164,15 +162,13 @@ export default function BlogsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-rose-50/20 relative overflow-hidden">
+    <div className="min-h-screen bg-white relative overflow-hidden">
       <ToastContainer position="top-right" autoClose={3000} theme="light" />
       
-      {/* Luxury Background Elements */}
+      {/* Simple Background Elements */}
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-10% left-5% w-80 h-80 bg-gradient-to-br from-amber-200/20 to-rose-200/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20% right-10% w-96 h-96 bg-gradient-to-br from-slate-200/10 to-amber-100/20 rounded-full blur-3xl animate-float-delayed"></div>
-        <div className="absolute top-60% left-15% w-64 h-64 bg-gradient-to-br from-rose-200/15 to-amber-100/10 rounded-full blur-3xl animate-float-slow"></div>
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5"></div>
+        <div className="absolute top-10% left-5% w-80 h-80 bg-amber-50/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20% right-10% w-96 h-96 bg-rose-50/20 rounded-full blur-3xl"></div>
       </div>
 
       {/* Header Section */}
@@ -182,21 +178,21 @@ export default function BlogsPage() {
             <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-600/40 to-transparent"></div>
             <div className="flex items-center gap-2 text-amber-600 text-sm font-semibold tracking-[0.3em] uppercase">
               <Sparkles className="w-4 h-4" />
-              Curated Excellence
+              Our Stories
               <Sparkles className="w-4 h-4" />
             </div>
             <div className="w-16 h-px bg-gradient-to-r from-amber-600/40 via-transparent to-transparent"></div>
           </div>
 
           <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif font-bold text-slate-800 mb-8 animate-slideUp leading-[0.9]">
-            Luxury
+            Insights
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-rose-600 to-amber-600 mt-4">
-              Insights
+              & Inspiration
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl text-slate-600 max-w-4xl mx-auto font-light animate-fadeInDelay leading-relaxed">
-            Discover meticulously crafted narratives that redefine excellence in thought leadership and creative expression
+            Explore articles crafted with passion, covering trends, strategies, and stories that matter.
           </p>
 
           {/* Stats Bar */}
@@ -218,7 +214,7 @@ export default function BlogsPage() {
           </div>
         </div>
 
-        {/* Luxury Category Filter */}
+        {/* Category Filter */}
         <div className="max-w-6xl mx-auto mt-16 animate-fadeInDelay2">
           <div className="flex flex-wrap justify-center gap-4">
             {categories.map((category) => (
@@ -231,7 +227,7 @@ export default function BlogsPage() {
                 className={`group relative px-8 py-4 rounded-2xl font-semibold transition-all duration-500 overflow-hidden ${
                   selectedCategory === category
                     ? 'bg-gradient-to-r from-amber-600 to-rose-600 text-white shadow-2xl shadow-amber-500/25 scale-105'
-                    : 'bg-white/80 text-slate-700 border border-amber-200/50 hover:border-amber-300/70 hover:shadow-xl backdrop-blur-sm'
+                    : 'bg-white text-slate-700 border border-amber-200 hover:border-amber-300 hover:shadow-xl'
                 }`}
               >
                 <span className="relative z-10 flex items-center gap-2">
@@ -249,7 +245,7 @@ export default function BlogsPage() {
         </div>
       </div>
 
-      {/* Featured Luxury Blog */}
+      {/* Featured Blog */}
       {filteredBlogs.length > 0 && filteredBlogs[0].featured && (
         <div className="relative px-6 md:px-20 mb-24">
           <div className="max-w-7xl mx-auto">
@@ -260,7 +256,7 @@ export default function BlogsPage() {
               {/* Background Glow */}
               <div className="absolute inset-0 bg-gradient-to-r from-amber-600/10 to-rose-600/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-1000"></div>
               
-              <div className="relative bg-gradient-to-br from-white/90 to-amber-50/50 backdrop-blur-xl rounded-3xl border border-amber-200/30 shadow-2xl overflow-hidden group-hover:shadow-3xl transition-all duration-700">
+              <div className="relative bg-white rounded-3xl border border-amber-200 shadow-2xl overflow-hidden group-hover:shadow-3xl transition-all duration-700">
                 <div className="grid grid-cols-1 xl:grid-cols-2 min-h-[600px]">
                   {/* Image Section */}
                   <div className="relative overflow-hidden">
@@ -274,14 +270,14 @@ export default function BlogsPage() {
                       }}
                     />
                     
-                    {/* Luxury Badges */}
+                    {/* Badges */}
                     <div className="absolute top-6 left-6 z-20">
                       <div className="flex flex-col gap-3">
                         <div className="px-4 py-2 bg-gradient-to-r from-amber-600 to-rose-600 text-white text-sm font-bold rounded-full shadow-lg flex items-center gap-2">
                           <Star className="w-4 h-4 fill-current" />
                           Editor's Choice
                         </div>
-                        <div className="px-3 py-1.5 bg-white/90 backdrop-blur-sm text-amber-700 text-xs font-semibold rounded-full border border-amber-200">
+                        <div className="px-3 py-1.5 bg-white/90 text-amber-700 text-xs font-semibold rounded-full border border-amber-200">
                           {filteredBlogs[0].category}
                         </div>
                       </div>
@@ -339,7 +335,7 @@ export default function BlogsPage() {
                         className="group/btn relative px-8 py-4 bg-gradient-to-r from-amber-600 to-rose-600 text-white font-semibold rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:scale-105"
                       >
                         <span className="relative z-10 flex items-center gap-3">
-                          Experience Story
+                          Read Full Story
                           <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" />
                         </span>
                         <div className="absolute inset-0 bg-white opacity-0 group-hover/btn:opacity-20 transition-opacity duration-500"></div>
@@ -350,7 +346,7 @@ export default function BlogsPage() {
                         className={`p-4 rounded-2xl border transition-all duration-300 ${
                           bookmarkedBlogs.has(filteredBlogs[0].id)
                             ? 'bg-amber-50 border-amber-300 text-amber-600'
-                            : 'bg-white/50 border-amber-200/50 text-slate-400 hover:border-amber-300'
+                            : 'bg-white border-amber-200 text-slate-400 hover:border-amber-300'
                         }`}
                       >
                         <Bookmark className={`w-5 h-5 ${bookmarkedBlogs.has(filteredBlogs[0].id) ? 'fill-current' : ''}`} />
@@ -364,21 +360,18 @@ export default function BlogsPage() {
         </div>
       )}
 
-      {/* Luxury Blog Grid */}
+      {/* Blog Grid */}
       <div className="relative px-6 md:px-20 pb-24">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {filteredBlogs.slice(filteredBlogs[0]?.featured ? 1 : 0).map((blog, index) => (
               <div
                 key={blog.id}
-                className="group relative bg-gradient-to-br from-white/80 to-amber-50/30 backdrop-blur-xl rounded-3xl border border-amber-200/30 overflow-hidden hover:shadow-3xl transition-all duration-700 cursor-pointer hover:-translate-y-3"
+                className="group relative bg-white rounded-3xl border border-amber-200 overflow-hidden hover:shadow-3xl transition-all duration-700 cursor-pointer hover:-translate-y-3"
                 onClick={() => handleBlogClick(blog.id)}
                 onMouseEnter={() => setHoveredCard(blog.id)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                {/* Background Glow */}
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-600/5 to-rose-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
                 <div className="relative h-72 overflow-hidden">
                   <img
                     src={blog.image}
@@ -390,9 +383,9 @@ export default function BlogsPage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
                   
-                  {/* Luxury Badges */}
+                  {/* Badges */}
                   <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <div className="px-3 py-1.5 bg-white/90 backdrop-blur-sm text-amber-700 text-xs font-bold rounded-full border border-amber-200 flex items-center gap-1.5">
+                    <div className="px-3 py-1.5 bg-white/90 text-amber-700 text-xs font-bold rounded-full border border-amber-200 flex items-center gap-1.5">
                       <Tag className="w-3 h-3" />
                       {blog.category}
                     </div>
@@ -407,10 +400,10 @@ export default function BlogsPage() {
                   <div className="absolute top-4 right-4 flex flex-col gap-2">
                     <button 
                       onClick={(e) => handleBookmark(blog.id, e)}
-                      className={`p-2 rounded-full backdrop-blur-sm transition-all duration-300 ${
+                      className={`p-2 rounded-full bg-white/80 transition-all duration-300 ${
                         bookmarkedBlogs.has(blog.id)
                           ? 'bg-amber-500 text-white shadow-lg'
-                          : 'bg-white/80 text-slate-600 hover:bg-white'
+                          : 'text-slate-600 hover:bg-white'
                       }`}
                     >
                       <Bookmark className={`w-4 h-4 ${bookmarkedBlogs.has(blog.id) ? 'fill-current' : ''}`} />
@@ -437,7 +430,7 @@ export default function BlogsPage() {
                   </p>
 
                   {/* Meta Information */}
-                  <div className="flex items-center justify-between text-xs text-slate-500 pt-4 border-t border-amber-200/30">
+                  <div className="flex items-center justify-between text-xs text-slate-500 pt-4 border-t border-amber-200">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5">
                         <User className="w-3.5 h-3.5 text-amber-600" />
@@ -461,7 +454,7 @@ export default function BlogsPage() {
                   </div>
 
                   {/* Engagement Stats */}
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-amber-200/30">
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-amber-200">
                     <div className="flex items-center gap-4 text-xs text-slate-500">
                       <div className="flex items-center gap-1">
                         <MessageCircle className="w-3.5 h-3.5" />
@@ -492,7 +485,7 @@ export default function BlogsPage() {
             ))}
           </div>
 
-          {/* Luxury Pagination */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-4 mt-16">
               <button
@@ -501,7 +494,7 @@ export default function BlogsPage() {
                 className={`px-8 py-4 rounded-2xl font-semibold transition-all duration-500 ${
                   currentPage === 1 
                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
-                    : 'bg-white/80 text-slate-700 hover:bg-gradient-to-r hover:from-amber-600 hover:to-rose-600 hover:text-white border border-amber-200/50 hover:border-transparent hover:shadow-2xl'
+                    : 'bg-white text-slate-700 hover:bg-gradient-to-r hover:from-amber-600 hover:to-rose-600 hover:text-white border border-amber-200 hover:border-transparent hover:shadow-2xl'
                 }`}
               >
                 Previous
@@ -527,7 +520,7 @@ export default function BlogsPage() {
                       className={`w-14 h-14 rounded-2xl font-semibold transition-all duration-500 ${
                         currentPage === pageNum 
                           ? 'bg-gradient-to-r from-amber-600 to-rose-600 text-white shadow-2xl scale-110' 
-                          : 'bg-white/80 text-slate-700 hover:bg-amber-50 border border-amber-200/50 hover:border-amber-300/70'
+                          : 'bg-white text-slate-700 hover:bg-amber-50 border border-amber-200 hover:border-amber-300'
                       }`}
                     >
                       {pageNum}
@@ -542,7 +535,7 @@ export default function BlogsPage() {
                 className={`px-8 py-4 rounded-2xl font-semibold transition-all duration-500 ${
                   currentPage === totalPages 
                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' 
-                    : 'bg-white/80 text-slate-700 hover:bg-gradient-to-r hover:from-amber-600 hover:to-rose-600 hover:text-white border border-amber-200/50 hover:border-transparent hover:shadow-2xl'
+                    : 'bg-white text-slate-700 hover:bg-gradient-to-r hover:from-amber-600 hover:to-rose-600 hover:text-white border border-amber-200 hover:border-transparent hover:shadow-2xl'
                 }`}
               >
                 Next
@@ -550,26 +543,26 @@ export default function BlogsPage() {
             </div>
           )}
 
-          {/* Luxury No Results */}
+          {/* No Results */}
           {filteredBlogs.length === 0 && (
             <div className="text-center py-24">
               <div className="w-24 h-24 bg-gradient-to-br from-amber-100 to-rose-100 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner">
                 <Sparkles className="w-12 h-12 text-amber-600" />
               </div>
               <h3 className="text-3xl font-serif font-bold text-slate-800 mb-4">
-                Curated Collection Empty
+                No blogs found
               </h3>
               <p className="text-slate-600 text-lg max-w-md mx-auto leading-relaxed">
                 {selectedCategory === 'All' 
-                  ? 'Our premium content library is being refreshed with new masterpieces' 
-                  : 'No luxury content found in this exclusive category'}
+                  ? 'No blog posts available at the moment' 
+                  : 'Try selecting a different category'}
               </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Luxury Footer Element */}
+      {/* Footer Element */}
       <div className="relative pb-20">
         <div className="flex justify-center">
           <div className="w-96 h-px bg-gradient-to-r from-transparent via-amber-600/30 to-transparent shadow-[0_0_40px_rgba(245,158,11,0.3)] animate-pulse-slow"></div>
@@ -594,30 +587,6 @@ export default function BlogsPage() {
           }
           100% {
             opacity: 1;
-          }
-        }
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-20px) rotate(1deg);
-          }
-        }
-        @keyframes float-delayed {
-          0%, 100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-15px) rotate(-1deg);
-          }
-        }
-        @keyframes float-slow {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
           }
         }
         @keyframes pulseSlow {
@@ -651,15 +620,6 @@ export default function BlogsPage() {
         .animate-fadeInDelay2 {
           animation: fadeIn 1.5s ease-in 0.6s forwards;
           opacity: 0;
-        }
-        .animate-float {
-          animation: float 8s ease-in-out infinite;
-        }
-        .animate-float-delayed {
-          animation: float-delayed 10s ease-in-out infinite;
-        }
-        .animate-float-slow {
-          animation: float-slow 12s ease-in-out infinite;
         }
         .animate-pulse-slow {
           animation: pulseSlow 4s ease-in-out infinite;
