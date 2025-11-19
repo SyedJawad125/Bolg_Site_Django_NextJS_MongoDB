@@ -9,14 +9,16 @@ import BannerSliderHomeCom from "@/components/BannerSliderHomeCom";
 import PublicBlogHomeCom from "@/components/PublicBlogHomeCom";
 import ContentpageHome from "@/components/ContentpageHome";
 import AdModal from "@/components/AdModal";
+import HeaderComponent from "@/components/HeaderComponent";
 
 
 export default function Home() {
   return (
     <>
     <AdModal />
-    <TopNavbarCom />
-    <NavbarCom />
+    {/* <TopNavbarCom /> */}
+    {/* <NavbarCom /> */}
+    <HeaderComponent/>
     <BannerSliderHomeCom />
     <PublicBlogHomeCom />
     {/* <LeftSideSliderCom /> */}
@@ -25,19 +27,3 @@ export default function Home() {
   </>
   );
 }
-
-{/* <>
-    <TopNavbarCom />
-    <NavbarCom />
-    <div className="flex flex-col min-h-screen">  
-      {/* Container for main and footer */}
-      // <main className="flex grow">  
-        {/* Grow ensures main takes up available space */}
-    //     <LeftSideSliderCom />
-    //     <div className="ml-[15%] w-[85%]">
-    //       <BannerSliderHomeCom />
-    //     </div>
-    //   </main>
-    //   <FooterCom />
-    // </div>
-  // </> */}

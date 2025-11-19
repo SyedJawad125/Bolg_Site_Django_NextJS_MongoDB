@@ -3,15 +3,15 @@ import NavbarCom from "@/components/NavbarCom";
 import ServicesPageCom from "@/components/ServicesPageCom";
 import TopNavbarCom from "@/components/TopNavbarCom";
 import FooterCom from "@/components/FooterCom";
-
-
+import HeaderComponent from '@/components/HeaderComponent';
 
 
 const page = () => {
   return (
     <div>
-      <TopNavbarCom/>
-      <NavbarCom/>
+      {/* <TopNavbarCom/>
+      <NavbarCom/> */}
+      <HeaderComponent/>
       <ServicesPageCom/>
       <div className="mt-20">
         <FooterCom />

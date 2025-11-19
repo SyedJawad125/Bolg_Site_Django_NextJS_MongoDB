@@ -34,3 +34,14 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+
+
+
+For making the TopNavbar move up and keeping the Navbar sticky:
+
+I updated the code so that the TopNavbar stays at the top of the page, and the main Navbar remains sticky beneath it. I applied the required changes in both components and created a new HeaderComponent.jsx, which is now registered inside the the every page where need TopNavbar and Navbar in Public site.
+
+For using both components on individual pages:
+
+If you want to use both the TopNavbar and the Navbar on specific pages, keep their code in separate components and import them only on the pages where they are needed—such as Home, About, etc.
