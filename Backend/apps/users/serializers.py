@@ -231,3 +231,119 @@ class RoleSerializer(serializers.ModelSerializer):
         data['permissions'] = PermissionListingSerializer(instance.permissions.all(), many=True).data if data['permissions'] else []
         return data
 
+
+
+# ============================================
+# ADD THIS TO YOUR serializers.py FILE
+# ============================================
+
+from rest_framework import serializers
+from firebase_admin import auth as firebase_auth
+from django.db import transaction
+from .models import User, Employee
+from utils.enums import *
+from utils.response_messages import *
+
+
+class GoogleLoginSerializer(serializers.Serializer):
+    """
+    Serializer for Google Login with Firebase ID Token
+    Verifies token and creates/retrieves user
+    """
+    id_token = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, attrs):
+        id_token = attrs.get('id_token')
+        
+        if not id_token:
+            raise serializers.ValidationError("ID token is required")
+        
+        try:
+            # Verify Firebase ID token
+            decoded_token = firebase_auth.verify_id_token(id_token)
+            
+            # Extract user information from token
+            email = decoded_token.get('email')
+            name = decoded_token.get('name', '')
+            profile_picture = decoded_token.get('picture')
+            firebase_uid = decoded_token.get('uid')
+            
+            if not email:
+                raise serializers.ValidationError("Email not found in Google account")
+            
+            # Split name into first and last name
+            name_parts = name.split(' ', 1) if name else ['', '']
+            first_name = name_parts[0] or 'User'
+            last_name = name_parts[1] if len(name_parts) > 1 else ''
+            
+            # Check if user exists or create new one
+            with transaction.atomic():
+                user = User.objects.filter(
+                    email=email,
+                    deleted=False
+                ).first()
+                
+                if user:
+                    # Update existing user info if needed
+                    updated = False
+                    
+                    if not user.first_name or user.first_name == 'User':
+                        user.first_name = first_name
+                        updated = True
+                    
+                    if not user.last_name:
+                        user.last_name = last_name
+                        updated = True
+                    
+                    # Activate user if they logged in with Google
+                    if not user.is_active or not user.is_verified:
+                        user.is_active = True
+                        user.is_verified = True
+                        user.is_blocked = False
+                        updated = True
+                    
+                    if updated:
+                        user.save()
+                    
+                    # Update employee status if exists
+                    if hasattr(user, 'user_employee'):
+                        employee = user.user_employee
+                        if employee.status != ACTIVE:
+                            employee.status = ACTIVE
+                            employee.save()
+                
+                else:
+                    # Create new user
+                    user = User.objects.create(
+                        username=email,
+                        email=email,
+                        first_name=first_name,
+                        last_name=last_name,
+                        is_active=True,
+                        is_verified=True,
+                        is_blocked=False,
+                        type=CUSTOMER,  # Default type, change as needed
+                    )
+                    
+                    # Optionally create Employee record
+                    # Uncomment if all Google users should be employees
+                    # Employee.objects.create(
+                    #     user=user,
+                    #     status=ACTIVE,
+                    #     created_by=user
+                    # )
+                
+                # Store user in validated data
+                attrs['user'] = user
+                
+        except firebase_auth.InvalidIdTokenError:
+            raise serializers.ValidationError("Invalid Google authentication token")
+        except firebase_auth.ExpiredIdTokenError:
+            raise serializers.ValidationError("Google authentication token has expired")
+        except firebase_auth.RevokedIdTokenError:
+            raise serializers.ValidationError("Google authentication token has been revoked")
+        except Exception as e:
+            print(f"Firebase token verification error: {str(e)}")
+            raise serializers.ValidationError(f"Authentication failed: {str(e)}")
+        
+        return attrs

@@ -427,3 +427,50 @@ class AccountActivateView(BaseView):
         except Exception as e:
             print(str(e))
             return Response(create_response(str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+# ============================================
+# ADD THIS TO YOUR views.py FILE
+# ============================================
+
+from firebase_admin import auth as firebase_auth
+from .serializers import GoogleLoginSerializer, LoginUserSerializer
+
+
+class GoogleLoginView(APIView):
+    """
+    Google Login using Firebase ID Token
+    Integrates with existing authentication system
+    """
+    authentication_classes = ()
+    permission_classes = (AllowAny,)
+    serializer_class = GoogleLoginSerializer
+
+    def post(self, request):
+        try:
+            serialized_data = self.serializer_class(data=request.data, context={'request': request})
+            
+            if serialized_data.is_valid():
+                # Get or create user from validated data
+                user = serialized_data.validated_data['user']
+                
+                # Generate tokens using your existing function
+                tokens = get_tokens_for_user(user)
+                
+                # Use your existing LoginUserSerializer for consistent response
+                resp_data = LoginUserSerializer(user, context={'tokens': tokens}).data
+                
+                return Response(create_response(SUCCESSFUL, resp_data), status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    create_response(get_first_error(serialized_data.errors)),
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        except Exception as e:
+            print(f"Google login error: {str(e)}")
+            return Response(
+                create_response(str(e)), 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

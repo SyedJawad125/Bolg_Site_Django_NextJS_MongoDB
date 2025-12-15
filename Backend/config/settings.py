@@ -358,3 +358,41 @@ CKEDITOR_5_CONFIGS = {
         }
     }
 }
+
+
+
+
+# ============================================
+# ADD THIS TO YOUR settings.py FILE
+# ============================================
+
+import firebase_admin
+from firebase_admin import credentials
+import os
+import json
+
+# Firebase Admin SDK Initialization
+# Option 1: Using JSON file (Development)
+FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'serviceAccountKey.json')
+
+if os.path.exists(FIREBASE_CREDENTIALS_PATH):
+    cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+    firebase_admin.initialize_app(cred)
+    print("✅ Firebase Admin SDK initialized with service account key")
+else:
+    # Option 2: Using environment variable (Production)
+    firebase_credentials_json = os.getenv('FIREBASE_CREDENTIALS')
+    if firebase_credentials_json:
+        try:
+            firebase_credentials = json.loads(firebase_credentials_json)
+            cred = credentials.Certificate(firebase_credentials)
+            firebase_admin.initialize_app(cred)
+            print("✅ Firebase Admin SDK initialized with environment variable")
+        except Exception as e:
+            print(f"❌ Failed to initialize Firebase: {str(e)}")
+    else:
+        print("⚠️ Firebase credentials not found. Google login will not work.")
+
+# IMPORTANT: Add serviceAccountKey.json to .gitignore
+# Add this line to your .gitignore file:
+# serviceAccountKey.json

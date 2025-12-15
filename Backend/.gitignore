@@ -79,3 +79,5 @@ db.sqlite3
 .pyc
 
 my_mig.bat
+
+serviceAccountKey.json
