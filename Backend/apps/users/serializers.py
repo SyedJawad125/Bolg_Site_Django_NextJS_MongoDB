@@ -57,10 +57,21 @@ class LoginSerializer(serializers.Serializer):
 
 
 class LoginUserSerializer(serializers.ModelSerializer):
-
+    
+    role_name = serializers.CharField(source='role.name', read_only=True)
     class Meta:
         model = User
-        fields = ('id', 'first_name', 'last_name', 'full_name', 'username', 'email', 'mobile', 'profile_image', 'role', 'type')
+        fields = ('id', 'first_name', 'last_name', 'full_name', 'username', 'email', 'mobile', 'profile_image', 'role', 'role_name', 'type')
+
+    # def to_representation(self, instance):
+    #     data = super().to_representation(instance)
+    #     tokens = self.context.get('tokens')
+    #     data['refresh_token'] = tokens['refresh']
+    #     data['access_token'] = tokens['access']
+    #     expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
+    #     data['age_in_seconds'] = expiry.total_seconds() * 1000
+    #     data['permissions'] = combine_role_permissions(instance.role)
+    #     return data
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -69,7 +80,13 @@ class LoginUserSerializer(serializers.ModelSerializer):
         data['access_token'] = tokens['access']
         expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
         data['age_in_seconds'] = expiry.total_seconds() * 1000
-        data['permissions'] = combine_role_permissions(instance.role)
+        
+        # ✅ FIX: Check if user has role before getting permissions
+        if instance.role:
+            data['permissions'] = combine_role_permissions(instance.role)
+        else:
+            data['permissions'] = {}
+        
         return data
 
 
