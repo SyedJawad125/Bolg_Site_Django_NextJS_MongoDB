@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.db.models import Q
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
@@ -56,22 +57,47 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
+# class LoginUserSerializer(serializers.ModelSerializer):
+    
+#     role_name = serializers.CharField(source='role.name', read_only=True)
+#     class Meta:
+#         model = User
+#         fields = ('id', 'first_name', 'last_name', 'full_name', 'username', 'email', 'mobile', 'profile_image', 'role', 'role_name', 'type')
+
+#     # def to_representation(self, instance):
+#     #     data = super().to_representation(instance)
+#     #     tokens = self.context.get('tokens')
+#     #     data['refresh_token'] = tokens['refresh']
+#     #     data['access_token'] = tokens['access']
+#     #     expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
+#     #     data['age_in_seconds'] = expiry.total_seconds() * 1000
+#     #     data['permissions'] = combine_role_permissions(instance.role)
+#     #     return data
+
+#     def to_representation(self, instance):
+#         data = super().to_representation(instance)
+#         tokens = self.context.get('tokens')
+#         data['refresh_token'] = tokens['refresh']
+#         data['access_token'] = tokens['access']
+#         expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
+#         data['age_in_seconds'] = expiry.total_seconds() * 1000
+        
+#         # ✅ FIX: Check if user has role before getting permissions
+#         if instance.role:
+#             data['permissions'] = combine_role_permissions(instance.role)
+#         else:
+#             data['permissions'] = {}
+        
+#         return data
+
+
 class LoginUserSerializer(serializers.ModelSerializer):
     
     role_name = serializers.CharField(source='role.name', read_only=True)
+    
     class Meta:
         model = User
         fields = ('id', 'first_name', 'last_name', 'full_name', 'username', 'email', 'mobile', 'profile_image', 'role', 'role_name', 'type')
-
-    # def to_representation(self, instance):
-    #     data = super().to_representation(instance)
-    #     tokens = self.context.get('tokens')
-    #     data['refresh_token'] = tokens['refresh']
-    #     data['access_token'] = tokens['access']
-    #     expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
-    #     data['age_in_seconds'] = expiry.total_seconds() * 1000
-    #     data['permissions'] = combine_role_permissions(instance.role)
-    #     return data
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -81,13 +107,17 @@ class LoginUserSerializer(serializers.ModelSerializer):
         expiry = SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
         data['age_in_seconds'] = expiry.total_seconds() * 1000
         
-        # ✅ FIX: Check if user has role before getting permissions
+        # ✅ Check if user has role before getting permissions
         if instance.role:
             data['permissions'] = combine_role_permissions(instance.role)
         else:
             data['permissions'] = {}
         
         return data
+
+
+
+
 
 
 class EmptySerializer(serializers.Serializer):
@@ -254,18 +284,136 @@ class RoleSerializer(serializers.ModelSerializer):
 # ADD THIS TO YOUR serializers.py FILE
 # ============================================
 
+# from rest_framework import serializers
+# from firebase_admin import auth as firebase_auth
+# from django.db import transaction
+# from .models import User, Employee
+# from utils.enums import *
+# from utils.response_messages import *
+
+
+# class GoogleLoginSerializer(serializers.Serializer):
+#     """
+#     Serializer for Google Login with Firebase ID Token
+#     Verifies token and creates/retrieves user
+#     """
+#     id_token = serializers.CharField(required=True, write_only=True)
+
+#     def validate(self, attrs):
+#         id_token = attrs.get('id_token')
+        
+#         if not id_token:
+#             raise serializers.ValidationError("ID token is required")
+        
+#         try:
+#             # Verify Firebase ID token
+#             decoded_token = firebase_auth.verify_id_token(id_token)
+            
+#             # Extract user information from token
+#             email = decoded_token.get('email')
+#             name = decoded_token.get('name', '')
+#             profile_picture = decoded_token.get('picture')
+#             firebase_uid = decoded_token.get('uid')
+            
+#             if not email:
+#                 raise serializers.ValidationError("Email not found in Google account")
+            
+#             # Split name into first and last name
+#             name_parts = name.split(' ', 1) if name else ['', '']
+#             first_name = name_parts[0] or 'User'
+#             last_name = name_parts[1] if len(name_parts) > 1 else ''
+            
+#             # Check if user exists or create new one
+#             with transaction.atomic():
+#                 user = User.objects.filter(
+#                     email=email,
+#                     deleted=False
+#                 ).first()
+                
+#                 if user:
+#                     # Update existing user info if needed
+#                     updated = False
+                    
+#                     if not user.first_name or user.first_name == 'User':
+#                         user.first_name = first_name
+#                         updated = True
+                    
+#                     if not user.last_name:
+#                         user.last_name = last_name
+#                         updated = True
+                    
+#                     # Activate user if they logged in with Google
+#                     if not user.is_active or not user.is_verified:
+#                         user.is_active = True
+#                         user.is_verified = True
+#                         user.is_blocked = False
+#                         updated = True
+                    
+#                     if updated:
+#                         user.save()
+                    
+#                     # Update employee status if exists
+#                     if hasattr(user, 'user_employee'):
+#                         employee = user.user_employee
+#                         if employee.status != ACTIVE:
+#                             employee.status = ACTIVE
+#                             employee.save()
+                
+#                 else:
+#                     # Create new user
+#                     user = User.objects.create(
+#                         username=email,
+#                         email=email,
+#                         first_name=first_name,
+#                         last_name=last_name,
+#                         is_active=True,
+#                         is_verified=True,
+#                         is_blocked=False,
+#                         type=CUSTOMER,  # Default type, change as needed
+#                     )
+                    
+#                     # Optionally create Employee record
+#                     # Uncomment if all Google users should be employees
+#                     # Employee.objects.create(
+#                     #     user=user,
+#                     #     status=ACTIVE,
+#                     #     created_by=user
+#                     # )
+                
+#                 # Store user in validated data
+#                 attrs['user'] = user
+                
+#         except firebase_auth.InvalidIdTokenError:
+#             raise serializers.ValidationError("Invalid Google authentication token")
+#         except firebase_auth.ExpiredIdTokenError:
+#             raise serializers.ValidationError("Google authentication token has expired")
+#         except firebase_auth.RevokedIdTokenError:
+#             raise serializers.ValidationError("Google authentication token has been revoked")
+#         except Exception as e:
+#             print(f"Firebase token verification error: {str(e)}")
+#             raise serializers.ValidationError(f"Authentication failed: {str(e)}")
+        
+#         return attrs
+
+
+# ============================================
+# FIXED: Complete Google Login Implementation
+# Works for BOTH new and existing users
+# ============================================
+
 from rest_framework import serializers
 from firebase_admin import auth as firebase_auth
 from django.db import transaction
-from .models import User, Employee
+from .models import User, Employee, Role
 from utils.enums import *
 from utils.response_messages import *
 
 
 class GoogleLoginSerializer(serializers.Serializer):
     """
-    Serializer for Google Login with Firebase ID Token
-    Verifies token and creates/retrieves user
+    Handles Google OAuth login with Firebase
+    - New users: Assigned "Guest" role automatically
+    - Existing users: Keep their current role
     """
     id_token = serializers.CharField(required=True, write_only=True)
 
@@ -276,34 +424,55 @@ class GoogleLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("ID token is required")
         
         try:
-            # Verify Firebase ID token
+            # Step 1: Verify Firebase ID token
             decoded_token = firebase_auth.verify_id_token(id_token)
             
-            # Extract user information from token
+            # Step 2: Extract user information
             email = decoded_token.get('email')
             name = decoded_token.get('name', '')
-            profile_picture = decoded_token.get('picture')
             firebase_uid = decoded_token.get('uid')
             
             if not email:
                 raise serializers.ValidationError("Email not found in Google account")
             
-            # Split name into first and last name
+            # Step 3: Parse name
             name_parts = name.split(' ', 1) if name else ['', '']
             first_name = name_parts[0] or 'User'
             last_name = name_parts[1] if len(name_parts) > 1 else ''
             
-            # Check if user exists or create new one
+            # Step 4: Get Guest role for potential new users
+            guest_role = Role.objects.filter(
+                code_name='guest',
+                deleted=False
+            ).first()
+            
+            if not guest_role:
+                print("❌ CRITICAL ERROR: 'guest' role not found!")
+                print("   Please create Guest role in Django admin with code_name='guest'")
+                raise serializers.ValidationError("Guest role not configured. Contact administrator.")
+            
+            # REMOVED: The print statement that was showing "Guest role found"
+            
             with transaction.atomic():
+                # Step 5: Check if user exists
                 user = User.objects.filter(
                     email=email,
                     deleted=False
-                ).first()
+                ).select_related('role').first()
                 
                 if user:
-                    # Update existing user info if needed
+                    # ============================================
+                    # EXISTING USER - Update info, keep current role
+                    # ============================================
+                    print(f"\n{'='*70}")
+                    print(f"🔵 EXISTING USER: {email}")
+                    print(f"   Current role: {user.role.name if user.role else 'No role'}")
+                    print(f"   Role ID: {user.role.id if user.role else 'N/A'}")
+                    print(f"{'='*70}")
+                    
                     updated = False
                     
+                    # Update name if empty
                     if not user.first_name or user.first_name == 'User':
                         user.first_name = first_name
                         updated = True
@@ -312,7 +481,7 @@ class GoogleLoginSerializer(serializers.Serializer):
                         user.last_name = last_name
                         updated = True
                     
-                    # Activate user if they logged in with Google
+                    # Activate if inactive
                     if not user.is_active or not user.is_verified:
                         user.is_active = True
                         user.is_verified = True
@@ -321,6 +490,9 @@ class GoogleLoginSerializer(serializers.Serializer):
                     
                     if updated:
                         user.save()
+                        print(f"   ✅ User info updated")
+                    else:
+                        print(f"   ℹ️  No updates needed")
                     
                     # Update employee status if exists
                     if hasattr(user, 'user_employee'):
@@ -328,29 +500,72 @@ class GoogleLoginSerializer(serializers.Serializer):
                         if employee.status != ACTIVE:
                             employee.status = ACTIVE
                             employee.save()
+                            print(f"   ✅ Employee status activated")
                 
                 else:
-                    # Create new user
+                    # ============================================
+                    # NEW USER - Assign Guest role
+                    # ============================================
+                    print(f"\n{'='*70}")
+                    print(f"🟢 NEW USER: {email}")
+                    print(f"   Assigning Guest role: {guest_role.name} (ID={guest_role.id})")
+                    print(f"{'='*70}")
+                    
+                    # Generate username from email (remove domain)
+                    base_username = email.split('@')[0]
+                    username = base_username
+                    counter = 1
+                    
+                    # Ensure username is unique
+                    while User.objects.filter(username=username, deleted=False).exists():
+                        username = f"{base_username}{counter}"
+                        counter += 1
+                    
+                    # Create new user with Guest role
                     user = User.objects.create(
-                        username=email,
+                        username=username,
                         email=email,
                         first_name=first_name,
                         last_name=last_name,
                         is_active=True,
                         is_verified=True,
                         is_blocked=False,
-                        type=CUSTOMER,  # Default type, change as needed
+                        type=CUSTOMER,
+                        role=guest_role  # Assign Guest role to new users only
                     )
                     
-                    # Optionally create Employee record
-                    # Uncomment if all Google users should be employees
-                    # Employee.objects.create(
-                    #     user=user,
-                    #     status=ACTIVE,
-                    #     created_by=user
-                    # )
+                    print(f"   ✅ User created with ID: {user.id}")
+                    print(f"   ✅ Username: {user.username}")
+                    print(f"   ✅ Role assigned: {user.role.name}")
+                    
+                    # ⚠️ CRITICAL: Refresh from database to ensure all relations loaded
+                    user.refresh_from_db()
                 
-                # Store user in validated data
+                # Step 6: Verify role is properly loaded
+                if user.role:
+                    print(f"\n✅ FINAL CHECK:")
+                    print(f"   User: {user.email}")
+                    print(f"   Username: {user.username}")
+                    print(f"   Role: {user.role.name} (ID: {user.role.id})")
+                    print(f"   Role Code: {user.role.code_name}")
+                    
+                    # Check permissions
+                    perms = user.role.permissions.all()
+                    perm_codes = [p.code_name for p in perms]
+                    print(f"   Permissions ({len(perms)}): {perm_codes}")
+                    
+                    # DEBUG: Check if role is actually Guest
+                    if user.role.code_name == 'guest':
+                        print(f"   ⚠️  WARNING: User has Guest role")
+                    else:
+                        print(f"   ✅ User has {user.role.name} role")
+                else:
+                    print(f"\n❌ ERROR: User has NO role!")
+                    print(f"   user.role_id: {user.role_id}")
+                
+                print(f"{'='*70}\n")
+                
+                # Return user
                 attrs['user'] = user
                 
         except firebase_auth.InvalidIdTokenError:
@@ -360,7 +575,10 @@ class GoogleLoginSerializer(serializers.Serializer):
         except firebase_auth.RevokedIdTokenError:
             raise serializers.ValidationError("Google authentication token has been revoked")
         except Exception as e:
-            print(f"Firebase token verification error: {str(e)}")
+            print(f"\n❌ ERROR in GoogleLoginSerializer:")
+            print(f"   {str(e)}")
+            import traceback
+            traceback.print_exc()
             raise serializers.ValidationError(f"Authentication failed: {str(e)}")
         
         return attrs

@@ -4,7 +4,7 @@ from utils.reusable_functions import (create_response, get_first_error, get_toke
 from rest_framework import status
 from utils.response_messages import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import (LoginSerializer, LoginUserSerializer, EmptySerializer, LogoutSerializer,
+from .serializers import (GoogleLoginSerializer, LoginSerializer, LoginUserSerializer, EmptySerializer, LogoutSerializer,
                           SetPasswordSerializer, PermissionSerializer, EmployeeSerializer,
                           UserSerializer, RoleSerializer, RoleListingSerializer)
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
@@ -434,14 +434,72 @@ class AccountActivateView(BaseView):
 # ADD THIS TO YOUR views.py FILE
 # ============================================
 
-from firebase_admin import auth as firebase_auth
+# from firebase_admin import auth as firebase_auth
+# from .serializers import GoogleLoginSerializer, LoginUserSerializer
+
+
+# class GoogleLoginView(APIView):
+#     """
+#     Google Login using Firebase ID Token
+#     Integrates with existing authentication system
+#     """
+#     authentication_classes = ()
+#     permission_classes = (AllowAny,)
+#     serializer_class = GoogleLoginSerializer
+
+#     def post(self, request):
+#         try:
+#             serialized_data = self.serializer_class(data=request.data, context={'request': request})
+            
+#             if serialized_data.is_valid():
+#                 # Get or create user from validated data
+#                 user = serialized_data.validated_data['user']
+                
+#                 # Generate tokens using your existing function
+#                 tokens = get_tokens_for_user(user)
+                
+#                 # Use your existing LoginUserSerializer for consistent response
+#                 resp_data = LoginUserSerializer(user, context={'tokens': tokens}).data
+                
+#                 return Response(create_response(SUCCESSFUL, resp_data), status=status.HTTP_200_OK)
+#             else:
+#                 return Response(
+#                     create_response(get_first_error(serialized_data.errors)),
+#                     status=status.HTTP_400_BAD_REQUEST
+#                 )
+                
+#         except Exception as e:
+#             print(f"Google login error: {str(e)}")
+#             return Response(
+#                 create_response(str(e)), 
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )
+
+
+
+
+
+
+# ============================================
+# FIXED: Google Login View
+# File: views.py
+# ============================================
+
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
 from .serializers import GoogleLoginSerializer, LoginUserSerializer
+from utils.response_messages import *
+from utils.helpers import create_response, get_first_error, get_tokens_for_user
 
 
 class GoogleLoginView(APIView):
     """
-    Google Login using Firebase ID Token
-    Integrates with existing authentication system
+    Google OAuth Login with Firebase
+    - Accepts Firebase ID token
+    - Creates new user with Guest role OR updates existing user
+    - Returns JWT tokens and user data with permissions
     """
     authentication_classes = ()
     permission_classes = (AllowAny,)
@@ -449,28 +507,96 @@ class GoogleLoginView(APIView):
 
     def post(self, request):
         try:
+            print(f"\n{'='*70}")
+            print(f"🔐 GOOGLE LOGIN REQUEST")
+            print(f"{'='*70}")
+            
+            # Step 1: Validate request data and get user
             serialized_data = self.serializer_class(data=request.data, context={'request': request})
             
-            if serialized_data.is_valid():
-                # Get or create user from validated data
-                user = serialized_data.validated_data['user']
-                
-                # Generate tokens using your existing function
-                tokens = get_tokens_for_user(user)
-                
-                # Use your existing LoginUserSerializer for consistent response
-                resp_data = LoginUserSerializer(user, context={'tokens': tokens}).data
-                
-                return Response(create_response(SUCCESSFUL, resp_data), status=status.HTTP_200_OK)
-            else:
+            if not serialized_data.is_valid():
+                error_msg = get_first_error(serialized_data.errors)
+                print(f"❌ Validation failed: {error_msg}")
                 return Response(
-                    create_response(get_first_error(serialized_data.errors)),
+                    create_response(error_msg),
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            # Step 2: Get validated user
+            user = serialized_data.validated_data['user']
+            
+            # Step 3: Display user information
+            self._print_user_info(user)
+            
+            # Step 4: Generate JWT tokens
+            tokens = get_tokens_for_user(user)
+            print(f"   🔑 Tokens generated")
+            
+            # Step 5: Serialize user data with tokens
+            resp_data = LoginUserSerializer(user, context={'tokens': tokens}).data
+            
+            # Step 6: Display response summary
+            self._print_response_summary(resp_data)
+            
+            print(f"{'='*70}\n")
+            
+            # Step 7: Return response
+            return Response(
+                create_response(SUCCESSFUL, resp_data),
+                status=status.HTTP_200_OK
+            )
                 
         except Exception as e:
-            print(f"Google login error: {str(e)}")
+            print(f"\n❌ ERROR in GoogleLoginView: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            print(f"{'='*70}\n")
+            
             return Response(
-                create_response(str(e)), 
+                create_response(f"Authentication failed: {str(e)}"), 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    def _print_user_info(self, user):
+        """Print formatted user information"""
+        print(f"\n👤 USER INFORMATION:")
+        print(f"   ID: {user.id}")
+        print(f"   Email: {user.email}")
+        print(f"   Name: {user.get_full_name() if hasattr(user, 'get_full_name') else f'{user.first_name} {user.last_name}'}")
+        
+        if user.role:
+            print(f"   Role: {user.role.name} (ID: {user.role.id})")
+            
+            # Get permissions count
+            perms = user.role.permissions.all()
+            print(f"   Permissions: {len(perms)} permissions assigned")
+            
+            # Show key permissions for Super/Admin roles
+            if user.role.code_name in ['su', 'admin', 'superadmin']:
+                key_perms = [p.code_name for p in perms if any(keyword in p.code_name for keyword in ['create', 'delete', 'update'])]
+                if key_perms:
+                    print(f"   Key permissions: {', '.join(key_perms[:5])}...")
+        else:
+            print(f"   ⚠️  WARNING: User has NO role assigned")
+            print(f"   Role ID field: {user.role_id}")
+    
+    def _print_response_summary(self, resp_data):
+        """Print formatted response summary"""
+        print(f"\n📤 RESPONSE SUMMARY:")
+        print(f"   User ID: {resp_data.get('id')}")
+        print(f"   Email: {resp_data.get('email')}")
+        
+        role_name = resp_data.get('role_name', 'No role')
+        print(f"   Role: {role_name}")
+        
+        permissions = resp_data.get('permissions', {})
+        if permissions:
+            perm_count = len(permissions)
+            print(f"   Permissions: {perm_count} permission{'s' if perm_count != 1 else ''}")
+            
+            # Show first few permissions for quick verification
+            if perm_count > 0:
+                first_perms = list(permissions.keys())[:3]
+                print(f"   Sample: {', '.join(first_perms)}...")
+        else:
+            print(f"   Permissions: No permissions assigned")
