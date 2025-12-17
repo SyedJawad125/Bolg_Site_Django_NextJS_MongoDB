@@ -114,11 +114,7 @@ class LoginUserSerializer(serializers.ModelSerializer):
             data['permissions'] = {}
         
         return data
-
-
-
-
-
+    
 
 class EmptySerializer(serializers.Serializer):
     pass
@@ -451,10 +447,8 @@ class GoogleLoginSerializer(serializers.Serializer):
                 print("   Please create Guest role in Django admin with code_name='guest'")
                 raise serializers.ValidationError("Guest role not configured. Contact administrator.")
             
-            # REMOVED: The print statement that was showing "Guest role found"
-            
             with transaction.atomic():
-                # Step 5: Check if user exists
+                # Step 5: Check if user exists - IMPORTANT: Use select_related for role
                 user = User.objects.filter(
                     email=email,
                     deleted=False
@@ -466,8 +460,19 @@ class GoogleLoginSerializer(serializers.Serializer):
                     # ============================================
                     print(f"\n{'='*70}")
                     print(f"🔵 EXISTING USER: {email}")
-                    print(f"   Current role: {user.role.name if user.role else 'No role'}")
-                    print(f"   Role ID: {user.role.id if user.role else 'N/A'}")
+                    
+                    # Check if user actually has a role
+                    if user.role:
+                        print(f"   Current role: {user.role.name}")
+                        print(f"   Role ID: {user.role.id}")
+                    else:
+                        print(f"   Current role: No role")
+                        print(f"   Role ID: N/A")
+                        
+                        # If existing user has no role, assign Guest role
+                        user.role = guest_role
+                        print(f"   ⚠️  Assigning Guest role to existing user without role")
+                    
                     print(f"{'='*70}")
                     
                     updated = False
@@ -537,15 +542,22 @@ class GoogleLoginSerializer(serializers.Serializer):
                     print(f"   ✅ User created with ID: {user.id}")
                     print(f"   ✅ Username: {user.username}")
                     print(f"   ✅ Role assigned: {user.role.name}")
-                    
-                    # ⚠️ CRITICAL: Refresh from database to ensure all relations loaded
-                    user.refresh_from_db()
                 
-                # Step 6: Verify role is properly loaded
+                # Step 6: CRITICAL - Refresh user with role and permissions preloaded
+                user = User.objects.filter(
+                    id=user.id
+                ).select_related(
+                    'role'
+                ).prefetch_related(
+                    'role__permissions'
+                ).first()
+                
+                # Step 7: Verify role is properly loaded
+                print(f"\n✅ FINAL CHECK:")
+                print(f"   User: {user.email}")
+                print(f"   Username: {user.username}")
+                
                 if user.role:
-                    print(f"\n✅ FINAL CHECK:")
-                    print(f"   User: {user.email}")
-                    print(f"   Username: {user.username}")
                     print(f"   Role: {user.role.name} (ID: {user.role.id})")
                     print(f"   Role Code: {user.role.code_name}")
                     
@@ -554,14 +566,24 @@ class GoogleLoginSerializer(serializers.Serializer):
                     perm_codes = [p.code_name for p in perms]
                     print(f"   Permissions ({len(perms)}): {perm_codes}")
                     
-                    # DEBUG: Check if role is actually Guest
+                    # Debug info
                     if user.role.code_name == 'guest':
-                        print(f"   ⚠️  WARNING: User has Guest role")
+                        print(f"   ✅ User has Guest role (as expected for new user)")
+                    elif user.role.code_name == 'su':
+                        print(f"   ✅ User has Super role")
                     else:
                         print(f"   ✅ User has {user.role.name} role")
                 else:
-                    print(f"\n❌ ERROR: User has NO role!")
+                    print(f"\n❌ CRITICAL ERROR: User has NO role!")
                     print(f"   user.role_id: {user.role_id}")
+                    print(f"   ⚠️  Assigning Guest role as fallback...")
+                    
+                    # Emergency fallback
+                    user.role = guest_role
+                    user.save()
+                    user.refresh_from_db()
+                    
+                    print(f"   ✅ Assigned Guest role as fallback")
                 
                 print(f"{'='*70}\n")
                 
