@@ -1,8 +1,14 @@
+// ============================================
+// UPDATED: components/Login.jsx
+// This version has BOTH email/password AND Google login
+// ============================================
+
 // 'use client';
 // import { useContext, useState } from 'react';
 // import { useRouter } from 'next/navigation';
 // import { AuthContext } from '@/components/AuthContext';
 // import AxiosInstance from '@/components/AxiosInstance';
+// import GoogleLoginButton from '@/components/GoogleLoginButton'; // ← ADD THIS IMPORT
 
 // const Login = () => {
 //   const { login } = useContext(AuthContext);
@@ -255,29 +261,13 @@
 //             </div>
 //           </div>
           
-//           {/* Social Login */}
-//           <div className="grid grid-cols-2 gap-4 mb-6">
-//             <button 
-//               type="button"
-//               className="flex items-center justify-center px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white hover:bg-white/10 transition-all duration-300"
-//             >
-//               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-//                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-//                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-//                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-//                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-//               </svg>
-//               Google
-//             </button>
-//             <button 
-//               type="button"
-//               className="flex items-center justify-center px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white hover:bg-white/10 transition-all duration-300"
-//             >
-//               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-//                 <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
-//               </svg>
-//               Twitter
-//             </button>
+//           {/* ============================================
+//               UPDATED: Google Login Button
+//               REMOVED: Dummy Google and Twitter buttons
+//               ADDED: Real GoogleLoginButton component
+//               ============================================ */}
+//           <div className="mb-6">
+//             <GoogleLoginButton />
 //           </div>
           
 //           {/* Sign Up Link */}
@@ -302,28 +292,39 @@
 
 
 
-// ============================================
-// UPDATED: components/Login.jsx
-// This version has BOTH email/password AND Google login
-// ============================================
 
 'use client';
-import { useContext, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useContext, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AuthContext } from '@/components/AuthContext';
 import AxiosInstance from '@/components/AxiosInstance';
-import GoogleLoginButton from '@/components/GoogleLoginButton'; // ← ADD THIS IMPORT
+import GoogleLoginButton from '@/components/GoogleLoginButton';
 
 const Login = () => {
   const { login } = useContext(AuthContext);
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Check for registration success message
+  useEffect(() => {
+    if (searchParams.get('registered') === 'true') {
+      setSuccess('Registration successful! Please login to continue.');
+      // Clear the URL parameter after showing the message
+      setTimeout(() => {
+        setSuccess('');
+        router.replace('/Login');
+      }, 5000);
+    }
+  }, [searchParams, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -331,13 +332,15 @@ const Login = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
+    // Clear messages when user starts typing
     if (error) setError('');
+    if (success) setSuccess('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     // Basic validation
@@ -350,7 +353,7 @@ const Login = () => {
     // Email format validation
     const usernameRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!usernameRegex.test(formData.username)) {
-      setError('Please enter a valid username address');
+      setError('Please enter a valid email address');
       setLoading(false);
       return;
     }
@@ -367,6 +370,12 @@ const Login = () => {
       if (response.data.message === 'Successful' && response.data.data) {
         // Pass the entire response to login function
         login(response.data);
+        
+        // Handle remember me functionality
+        if (rememberMe && typeof window !== 'undefined') {
+          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem('lastUsername', formData.username);
+        }
         
         // Notify the sidebar about auth change
         if (typeof window !== 'undefined') {
@@ -385,12 +394,21 @@ const Login = () => {
       // Handle different error scenarios
       if (err.response) {
         // Server responded with error status
-        // Backend returns errors in format: { message: "error message" }
         const errorMessage = err.response.data?.message 
           || err.response.data?.detail 
           || err.response.data?.error
           || 'Invalid credentials. Please try again.';
-        setError(errorMessage);
+        
+        // Provide user-friendly messages for common errors
+        if (err.response.status === 401) {
+          setError('Invalid email or password. Please try again.');
+        } else if (err.response.status === 404) {
+          setError('Account not found. Please check your email or sign up.');
+        } else if (err.response.status === 403) {
+          setError('Account is inactive. Please contact support.');
+        } else {
+          setError(errorMessage);
+        }
       } else if (err.request) {
         // Request was made but no response received
         setError('Unable to connect to server. Please check your connection.');
@@ -402,6 +420,19 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  // Load remembered username on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const remembered = localStorage.getItem('rememberMe') === 'true';
+      const lastUsername = localStorage.getItem('lastUsername');
+      
+      if (remembered && lastUsername) {
+        setFormData(prev => ({ ...prev, username: lastUsername }));
+        setRememberMe(true);
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -431,14 +462,26 @@ const Login = () => {
             </p>
           </div>
           
+          {/* Success Message */}
+          {success && (
+            <div className="mb-6 p-4 bg-emerald-500/20 border border-emerald-500/30 text-white rounded-xl backdrop-blur-sm animate-fade-in">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="text-sm">{success}</span>
+              </div>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-rose-500/20 border border-rose-500/30 text-white rounded-xl backdrop-blur-sm">
+            <div className="mb-6 p-4 bg-rose-500/20 border border-rose-500/30 text-white rounded-xl backdrop-blur-sm animate-shake">
               <div className="flex items-center">
-                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
-                {error}
+                <span className="text-sm">{error}</span>
               </div>
             </div>
           )}
@@ -454,15 +497,16 @@ const Login = () => {
               </label>
               <div className="relative">
                 <input
-                  type="username"
+                  type="email"
                   id="username"
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/30 transition-all duration-300 backdrop-blur-sm"
-                  placeholder="Enter your username"
+                  placeholder="Enter your email"
                   required
                   disabled={loading}
+                  autoComplete="email"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -491,6 +535,7 @@ const Login = () => {
                   placeholder="Enter your password"
                   required
                   disabled={loading}
+                  autoComplete="current-password"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -502,9 +547,14 @@ const Login = () => {
             
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center text-white/70 text-sm">
-                <input type="checkbox" className="rounded bg-white/10 border-white/20 text-amber-400 focus:ring-amber-400/50" />
-                <span className="ml-2">Remember me</span>
+              <label className="flex items-center text-white/70 text-sm cursor-pointer group">
+                <input 
+                  type="checkbox" 
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded bg-white/10 border-white/20 text-amber-400 focus:ring-amber-400/50 cursor-pointer transition-all duration-300" 
+                />
+                <span className="ml-2 group-hover:text-white/90 transition-colors duration-300">Remember me</span>
               </label>
               <a 
                 href="/forgetpassword" 
@@ -565,11 +615,7 @@ const Login = () => {
             </div>
           </div>
           
-          {/* ============================================
-              UPDATED: Google Login Button
-              REMOVED: Dummy Google and Twitter buttons
-              ADDED: Real GoogleLoginButton component
-              ============================================ */}
+          {/* Google Login Button */}
           <div className="mb-6">
             <GoogleLoginButton />
           </div>
