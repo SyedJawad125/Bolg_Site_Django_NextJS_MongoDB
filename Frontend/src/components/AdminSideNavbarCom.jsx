@@ -1,397 +1,30 @@
 // 'use client';
-// import { useState, useEffect } from 'react';
-// import { useRouter } from 'next/navigation';
-// import { Home, Users, FileText, Settings, LogOut, Lock, Eye, Menu, X, ChevronRight, User, Shield } from 'lucide-react';
-
-// const AdminSideNavbarCom = () => {
-//   const router = useRouter();
-//   const [isAuthenticated, setIsAuthenticated] = useState(true);
-//   const [userRole, setUserRole] = useState('admin');
-//   const [isCollapsed, setIsCollapsed] = useState(false);
-//   const [activeRoute, setActiveRoute] = useState('/admindashboard');
-//   const [hoveredItem, setHoveredItem] = useState(null);
-//   const [userData, setUserData] = useState(null);
-
-//   useEffect(() => {
-//     // Check authentication
-//     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-//     const role = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-//     const userInfo = typeof window !== 'undefined' ? localStorage.getItem('userInfo') : null;
-    
-//     setIsAuthenticated(!!token);
-//     setUserRole(role);
-
-//     // Parse user info if available
-//     if (userInfo) {
-//       try {
-//         setUserData(JSON.parse(userInfo));
-//       } catch (error) {
-//         console.error('Error parsing user info:', error);
-//         // Set default user data
-//         setUserData({
-//           Id: 2,
-//           Name: "Super",
-//           Code_name: "Su"
-//         });
-//       }
-//     }
-
-//     // Set active route based on current path
-//     if (typeof window !== 'undefined') {
-//       setActiveRoute(window.location.pathname);
-//     }
-//   }, []);
-
-//   const navigationItems = [
-//     {
-//       id: 'dashboard',
-//       label: 'Dashboard',
-//       icon: Home,
-//       path: '/admindashboard',
-//       roles: ['admin', 'editor']
-//     },
-//     {
-//       id: 'posts',
-//       label: 'Blog Posts',
-//       icon: FileText,
-//       path: '/blogpostpage',
-//       roles: ['admin', 'editor']
-//     },
-//     {
-//       id: 'employees',
-//       label: 'Employee Records',
-//       icon: Users,
-//       path: '/employeepage',
-//       roles: ['admin']
-//     },
-//     {
-//       id: 'profile',
-//       label: 'Client Profile',
-//       icon: Eye,
-//       path: '/clientselfpage',
-//       roles: ['admin', 'editor', 'client']
-//     },
-//     {
-//       id: 'public',
-//       label: 'Public Site',
-//       icon: Home,
-//       path: '/',
-//       roles: ['admin', 'editor', 'client']
-//     }
-//   ];
-
-//   const handleNavigation = (path) => {
-//     setActiveRoute(path);
-//     router.push(path);
-//   };
-
-//   const handleLogout = () => {
-//     if (typeof window !== 'undefined') {
-//       localStorage.removeItem('token');
-//       localStorage.removeItem('role');
-//       localStorage.removeItem('userInfo');
-//     }
-//     setIsAuthenticated(false);
-//     router.push('/Login');
-//   };
-
-//   const handleChangePassword = () => {
-//     router.push('/changepassword');
-//   };
-
-//   // Get user initials for avatar
-//   const getUserInitials = () => {
-//     if (userData?.Name) {
-//       return userData.Name.substring(0, 2).toUpperCase();
-//     }
-//     return 'AH';
-//   };
-
-//   // Get user display name
-//   const getUserDisplayName = () => {
-//     if (userData?.Name) {
-//       return userData.Name;
-//     }
-//     return 'Admin User';
-//   };
-
-//   // Get user role display
-//   const getUserRoleDisplay = () => {
-//     if (userData?.Code_name) {
-//       return userData.Code_name;
-//     }
-//     return userRole || 'Admin';
-//   };
-
-//   return (
-//     <div className="relative h-screen">
-//       {/* Sidebar */}
-//       <div 
-//         className={`fixed top-0 left-0 h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white transition-all duration-300 ease-in-out ${
-//           isCollapsed ? 'w-20' : 'w-72'
-//         } shadow-2xl border-r border-slate-700/50 z-50`}
-//       >
-//         {/* Header */}
-//         <div className="relative p-6 border-b border-slate-700/50">
-//           <div className="flex items-center justify-between">
-//             <div className={`flex items-center space-x-3 ${isCollapsed ? 'justify-center w-full' : ''}`}>
-//               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-//                 <FileText className="w-6 h-6" />
-//               </div>
-//               {!isCollapsed && (
-//                 <div className="flex flex-col">
-//                   <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-//                     BlogCMS
-//                   </h2>
-//                   <p className="text-xs text-slate-400">Admin Panel</p>
-//                 </div>
-//               )}
-//             </div>
-//             {!isCollapsed && (
-//               <button
-//                 onClick={() => setIsCollapsed(true)}
-//                 className="p-1.5 hover:bg-slate-700/50 rounded-lg transition-colors"
-//               >
-//                 <X className="w-5 h-5 text-slate-400" />
-//               </button>
-//             )}
-//           </div>
-//           {isCollapsed && (
-//             <button
-//               onClick={() => setIsCollapsed(false)}
-//               className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-700 hover:bg-slate-600 rounded-full flex items-center justify-center shadow-lg transition-colors border border-slate-600"
-//             >
-//               <ChevronRight className="w-4 h-4" />
-//             </button>
-//           )}
-//         </div>
-
-//         {/* Navigation */}
-//         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-//           {navigationItems.map((item) => {
-//             const Icon = item.icon;
-//             const isActive = activeRoute === item.path;
-//             const isHovered = hoveredItem === item.id;
-            
-//             return (
-//               <button
-//                 key={item.id}
-//                 onClick={() => handleNavigation(item.path)}
-//                 onMouseEnter={() => setHoveredItem(item.id)}
-//                 onMouseLeave={() => setHoveredItem(null)}
-//                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${
-//                   isActive
-//                     ? 'bg-gradient-to-r from-blue-600/90 to-purple-600/90 shadow-lg shadow-blue-500/20'
-//                     : 'hover:bg-slate-700/30'
-//                 } ${isCollapsed ? 'justify-center' : ''}`}
-//               >
-//                 {/* Active indicator */}
-//                 {isActive && !isCollapsed && (
-//                   <div className="absolute left-0 w-1 h-8 bg-white rounded-r-full shadow-lg" />
-//                 )}
-                
-//                 {/* Background glow effect */}
-//                 {isActive && (
-//                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10" />
-//                 )}
-                
-//                 <Icon 
-//                   className={`w-5 h-5 transition-transform duration-200 relative z-10 ${
-//                     isHovered ? 'scale-110' : ''
-//                   } ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`}
-//                 />
-                
-//                 {!isCollapsed && (
-//                   <span className={`flex-1 text-left font-medium relative z-10 ${
-//                     isActive ? 'text-white' : 'text-slate-300 group-hover:text-white'
-//                   }`}>
-//                     {item.label}
-//                   </span>
-//                 )}
-                
-//                 {!isCollapsed && isHovered && !isActive && (
-//                   <ChevronRight className="w-4 h-4 text-slate-400 relative z-10" />
-//                 )}
-//               </button>
-//             );
-//           })}
-//         </nav>
-
-//         {/* Footer Actions */}
-//         <div className="p-4 border-t border-slate-700/50 space-y-2">
-//           {/* User Info - Enhanced Design */}
-//           {!isCollapsed && (
-//             <div className="mb-4 p-4 bg-slate-800/30 rounded-xl border border-slate-700/50 backdrop-blur-sm">
-//               <div className="flex items-center space-x-3">
-//                 <div className="relative">
-//                   <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
-//                     {getUserInitials()}
-//                   </div>
-//                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
-//                     <Shield className="w-3 h-3 text-white" />
-//                   </div>
-//                 </div>
-//                 <div className="flex-1 min-w-0">
-//                   <p className="text-sm font-semibold text-white truncate">
-//                     {getUserDisplayName()}
-//                   </p>
-//                   <p className="text-xs text-slate-300 capitalize mt-1">
-//                     {getUserRoleDisplay()}
-//                   </p>
-//                   {userData?.Id && (
-//                     <p className="text-xs text-slate-400 mt-1">
-//                       ID: {userData.Id}
-//                     </p>
-//                   )}
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Collapsed User Info */}
-//           {isCollapsed && (
-//             <div className="mb-4 flex justify-center">
-//               <div className="relative">
-//                 <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg">
-//                   {getUserInitials()}
-//                 </div>
-//                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-900 flex items-center justify-center">
-//                   <Shield className="w-2 h-2 text-white" />
-//                 </div>
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Change Password */}
-//           <button
-//             onClick={handleChangePassword}
-//             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-slate-800/30 hover:bg-slate-700/40 border border-slate-700/50 hover:border-slate-600/60 transition-all duration-200 group ${
-//               isCollapsed ? 'justify-center' : ''
-//             }`}
-//           >
-//             <Lock className="w-5 h-5 text-slate-400 group-hover:text-amber-400 transition-colors" />
-//             {!isCollapsed && (
-//               <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
-//                 Change Password
-//               </span>
-//             )}
-//           </button>
-
-//           {/* Logout */}
-//           {isAuthenticated ? (
-//             <button
-//               onClick={handleLogout}
-//               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-gradient-to-r from-red-600/90 to-red-700/90 hover:from-red-500/90 hover:to-red-600/90 shadow-lg shadow-red-500/20 transition-all duration-200 group ${
-//                 isCollapsed ? 'justify-center' : ''
-//               }`}
-//             >
-//               <LogOut className="w-5 h-5 text-white" />
-//               {!isCollapsed && (
-//                 <span className="text-sm font-medium text-white">
-//                   Logout
-//                 </span>
-//               )}
-//             </button>
-//           ) : (
-//             <button
-//               onClick={() => router.push('/Login')}
-//               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 shadow-lg shadow-green-500/20 transition-all duration-200 group ${
-//                 isCollapsed ? 'justify-center' : ''
-//               }`}
-//             >
-//               <Lock className="w-5 h-5 text-white" />
-//               {!isCollapsed && (
-//                 <span className="text-sm font-medium text-white">
-//                   Login
-//                 </span>
-//               )}
-//             </button>
-//           )}
-//         </div>
-//       </div>
-
-//       {/* Overlay for mobile */}
-//       {!isCollapsed && (
-//         <div 
-//           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-//           onClick={() => setIsCollapsed(true)}
-//         />
-//       )}
-//     </div>
-//   );
-// };
-
-// export default AdminSideNavbarCom;
-
-
-
-
-// 'use client';
-// import { useState, useEffect } from 'react';
-// import { useRouter } from 'next/navigation';
+// import { useState, useEffect, useContext } from 'react';
+// import { useRouter, usePathname } from 'next/navigation';
 // import { Home, Users, FileText, Settings, LogOut, Lock, Eye, Menu, X, ChevronRight, User, Shield, Zap, Globe, Image } from 'lucide-react';
+// import { AuthContext } from '@/components/AuthContext'; // Adjust path as needed
 
 // const AdminSideNavbarCom = () => {
 //   const router = useRouter();
-//   const [isAuthenticated, setIsAuthenticated] = useState(false);
-//   const [userRole, setUserRole] = useState('admin');
+//   const pathname = usePathname();
+  
+//   // Use AuthContext instead of localStorage
+//   const { isAuthenticated, user, role, logout, loading } = useContext(AuthContext);
+  
 //   const [isCollapsed, setIsCollapsed] = useState(false);
 //   const [activeRoute, setActiveRoute] = useState('/admindashboard');
 //   const [hoveredItem, setHoveredItem] = useState(null);
-//   const [userData, setUserData] = useState({
-//     Id: null,
-//     Name: 'Admin User',
-//     Code_name: 'Admin'
-//   });
-//   const [isLoading, setIsLoading] = useState(true);
 
+//   // Update active route on pathname change
 //   useEffect(() => {
-//     // Check authentication
-//     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-//     const role = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
-//     const userInfo = typeof window !== 'undefined' ? localStorage.getItem('userInfo') : null;
-    
-//     setIsAuthenticated(!!token);
-//     setUserRole(role);
+//     console.log('Route changed to:', pathname);
+//     setActiveRoute(pathname);
+//   }, [pathname]);
 
-//     // Parse user info if available
-//     if (userInfo) {
-//       try {
-//         const parsed = JSON.parse(userInfo);
-//         console.log('Parsed user info:', parsed); // Debug log
-        
-//         // Handle different API response formats
-//         const cleanData = {
-//           Id: parsed.id || parsed.Id || parsed.ID || null,
-//           Name: parsed.name || parsed.Name || parsed.username || parsed.Username || 'Admin User',
-//           Code_name: parsed.code_name || parsed.Code_name || parsed.codeName || parsed.role || role || 'Admin'
-//         };
-        
-//         console.log('Clean user data:', cleanData); // Debug log
-//         setUserData(cleanData);
-//       } catch (error) {
-//         console.error('Error parsing user info:', error);
-//         // Set default fallback
-//         setUserData({
-//           Id: null,
-//           Name: 'Admin User',
-//           Code_name: role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Admin'
-//         });
-//       }
-//     } else {
-//       // Set default if no userInfo exists
-//       setUserData({
-//         Id: null,
-//         Name: 'Admin User',
-//         Code_name: role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Admin'
-//       });
-//     }
-
-//     // Set active route based on current path
-//     if (typeof window !== 'undefined') {
-//       setActiveRoute(window.location.pathname);
-//     }
-//   }, []);
+//   // Log authentication state changes
+//   useEffect(() => {
+//     console.log('Auth state - isAuthenticated:', isAuthenticated, 'user:', user);
+//   }, [isAuthenticated, user]);
 
 //   const navigationItems = [
 //     {
@@ -414,7 +47,7 @@
 //       id: 'images',
 //       label: 'Images',
 //       icon: Image,
-//       path: '/images',
+//       path: '/imagespage',
 //       roles: ['admin', 'editor'],
 //       color: 'red'
 //     },
@@ -449,13 +82,9 @@
 //     router.push(path);
 //   };
 
-//   const handleLogout = () => {
-//     if (typeof window !== 'undefined') {
-//       localStorage.removeItem('token');
-//       localStorage.removeItem('role');
-//       localStorage.removeItem('userInfo');
-//     }
-//     setIsAuthenticated(false);
+//   const handleLogout = async () => {
+//     console.log('Logout button clicked');
+//     await logout();
 //     router.push('/Login');
 //   };
 
@@ -465,30 +94,24 @@
 
 //   // Get user initials for avatar
 //   const getUserInitials = () => {
-//     if (userData?.Name) {
-//       const names = userData.Name.trim().split(' ');
+//     if (user?.name) {
+//       const names = user.name.trim().split(' ');
 //       if (names.length >= 2) {
 //         return (names[0][0] + names[names.length - 1][0]).toUpperCase();
 //       }
-//       return userData.Name.substring(0, 2).toUpperCase();
+//       return user.name.substring(0, 2).toUpperCase();
 //     }
 //     return 'AU';
 //   };
 
 //   // Get user display name
 //   const getUserDisplayName = () => {
-//     if (userData?.Name) {
-//       return userData.Name;
-//     }
-//     return 'Admin User';
+//     return user?.name || user?.username || 'Admin User';
 //   };
 
 //   // Get user role display
 //   const getUserRoleDisplay = () => {
-//     if (userData?.Code_name) {
-//       return userData.Code_name;
-//     }
-//     return userRole?.charAt(0).toUpperCase() + userRole?.slice(1) || 'Admin';
+//     return role?.name || user?.role_name || 'Admin';
 //   };
 
 //   // Get color classes based on item color
@@ -528,6 +151,17 @@
     
 //     return colors[color] || colors.blue;
 //   };
+
+//   // Show loading state if auth is loading
+//   if (loading) {
+//     return (
+//       <div className="fixed top-0 left-0 h-screen w-72 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+//         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+//       </div>
+//     );
+//   }
+
+//   console.log('Render - isAuthenticated:', isAuthenticated); // Debug log
 
 //   return (
 //     <div className="relative h-screen">
@@ -652,7 +286,7 @@
 //           {/* Footer Actions */}
 //           <div className="p-4 border-t border-slate-700/50 backdrop-blur-sm space-y-2">
 //             {/* User Info - Enhanced Design */}
-//             {!isCollapsed && (
+//             {!isCollapsed && isAuthenticated && (
 //               <div className="mb-3 p-4 bg-gradient-to-br from-slate-800/40 to-slate-900/40 rounded-xl border border-slate-700/50 backdrop-blur-sm hover:border-slate-600/60 transition-all">
 //                 <div className="flex items-center space-x-3">
 //                   <div className="relative">
@@ -679,7 +313,7 @@
 //             )}
 
 //             {/* Collapsed User Info */}
-//             {isCollapsed && (
+//             {isCollapsed && isAuthenticated && (
 //               <div className="mb-3 flex justify-center">
 //                 <div className="relative group cursor-pointer">
 //                   <div className="w-11 h-11 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-amber-500/30 ring-2 ring-slate-800 ring-offset-2 ring-offset-slate-900 transition-transform group-hover:scale-110">
@@ -693,29 +327,31 @@
 //             )}
 
 //             {/* Quick Actions Label */}
-//             {!isCollapsed && (
+//             {!isCollapsed && isAuthenticated && (
 //               <div className="px-2 pt-2 pb-1">
 //                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Quick Actions</p>
 //               </div>
 //             )}
 
-//             {/* Change Password */}
-//             <button
-//               onClick={handleChangePassword}
-//               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-slate-800/40 hover:bg-slate-700/50 border border-slate-700/50 hover:border-amber-600/50 transition-all duration-200 group hover:shadow-lg hover:shadow-amber-500/10 ${
-//                 isCollapsed ? 'justify-center' : ''
-//               }`}
-//               title={isCollapsed ? 'Change Password' : ''}
-//             >
-//               <Lock className="w-5 h-5 text-slate-400 group-hover:text-amber-400 transition-colors group-hover:scale-110 duration-200" />
-//               {!isCollapsed && (
-//                 <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
-//                   Change Password
-//                 </span>
-//               )}
-//             </button>
+//             {/* Change Password - Only show when authenticated */}
+//             {isAuthenticated && (
+//               <button
+//                 onClick={handleChangePassword}
+//                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-slate-800/40 hover:bg-slate-700/50 border border-slate-700/50 hover:border-amber-600/50 transition-all duration-200 group hover:shadow-lg hover:shadow-amber-500/10 ${
+//                   isCollapsed ? 'justify-center' : ''
+//                 }`}
+//                 title={isCollapsed ? 'Change Password' : ''}
+//               >
+//                 <Lock className="w-5 h-5 text-slate-400 group-hover:text-amber-400 transition-colors group-hover:scale-110 duration-200" />
+//                 {!isCollapsed && (
+//                   <span className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">
+//                     Change Password
+//                   </span>
+//                 )}
+//               </button>
+//             )}
 
-//             {/* Logout */}
+//             {/* Logout/Login Button */}
 //             {isAuthenticated ? (
 //               <button
 //                 onClick={handleLogout}
@@ -793,35 +429,30 @@
 // export default AdminSideNavbarCom;
 
 
-
-
 'use client';
 import { useState, useEffect, useContext } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Home, Users, FileText, Settings, LogOut, Lock, Eye, Menu, X, ChevronRight, User, Shield, Zap, Globe, Image } from 'lucide-react';
-import { AuthContext } from '@/components/AuthContext'; // Adjust path as needed
+import { AuthContext } from '@/components/AuthContext';
 
 const AdminSideNavbarCom = () => {
   const router = useRouter();
   const pathname = usePathname();
   
-  // Use AuthContext instead of localStorage
   const { isAuthenticated, user, role, logout, loading } = useContext(AuthContext);
   
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeRoute, setActiveRoute] = useState('/admindashboard');
   const [hoveredItem, setHoveredItem] = useState(null);
 
-  // Update active route on pathname change
   useEffect(() => {
     console.log('Route changed to:', pathname);
     setActiveRoute(pathname);
   }, [pathname]);
 
-  // Log authentication state changes
   useEffect(() => {
-    console.log('Auth state - isAuthenticated:', isAuthenticated, 'user:', user);
-  }, [isAuthenticated, user]);
+    console.log('Auth state - isAuthenticated:', isAuthenticated, 'user:', user, 'role:', role);
+  }, [isAuthenticated, user, role]);
 
   const navigationItems = [
     {
@@ -829,7 +460,7 @@ const AdminSideNavbarCom = () => {
       label: 'Dashboard',
       icon: Home,
       path: '/admindashboard',
-      roles: ['admin', 'editor'],
+      roles: ['admin', 'editor', 'super'],
       color: 'blue'
     },
     {
@@ -837,7 +468,7 @@ const AdminSideNavbarCom = () => {
       label: 'Blog Posts',
       icon: FileText,
       path: '/blogpostpage',
-      roles: ['admin', 'editor'],
+      roles: ['admin', 'editor', 'super'],
       color: 'purple'
     },
     {
@@ -845,7 +476,7 @@ const AdminSideNavbarCom = () => {
       label: 'Images',
       icon: Image,
       path: '/imagespage',
-      roles: ['admin', 'editor'],
+      roles: ['admin', 'editor', 'guest', 'super'], // Added 'guest' role
       color: 'red'
     },
     {
@@ -853,7 +484,7 @@ const AdminSideNavbarCom = () => {
       label: 'Employee Records',
       icon: Users,
       path: '/employeepage',
-      roles: ['admin'],
+      roles: ['admin', 'super'],
       color: 'emerald'
     },
     {
@@ -861,7 +492,7 @@ const AdminSideNavbarCom = () => {
       label: 'Client Profile',
       icon: User,
       path: '/clientselfpage',
-      roles: ['admin', 'editor', 'client'],
+      roles: ['admin', 'editor', 'client', 'guest', 'super'], // Added 'guest' role
       color: 'amber'
     },
     {
@@ -869,10 +500,26 @@ const AdminSideNavbarCom = () => {
       label: 'Public Site',
       icon: Globe,
       path: '/',
-      roles: ['admin', 'editor', 'client'],
+      roles: ['admin', 'editor', 'client', 'guest', 'super'], // Added 'guest' role
       color: 'cyan'
     }
   ];
+
+  // Filter navigation items based on user role
+  const getFilteredNavigationItems = () => {
+    if (!role && !user) return navigationItems;
+    
+    const userRole = role?.name?.toLowerCase() || user?.role_name?.toLowerCase() || user?.role?.toLowerCase();
+    console.log('Filtering for role:', userRole);
+    
+    return navigationItems.filter(item => {
+      const hasAccess = item.roles.some(r => r.toLowerCase() === userRole);
+      console.log(`Item: ${item.label}, Has Access: ${hasAccess}`);
+      return hasAccess;
+    });
+  };
+
+  const filteredNavigationItems = getFilteredNavigationItems();
 
   const handleNavigation = (path) => {
     setActiveRoute(path);
@@ -889,7 +536,6 @@ const AdminSideNavbarCom = () => {
     router.push('/changepassword');
   };
 
-  // Get user initials for avatar
   const getUserInitials = () => {
     if (user?.name) {
       const names = user.name.trim().split(' ');
@@ -901,17 +547,14 @@ const AdminSideNavbarCom = () => {
     return 'AU';
   };
 
-  // Get user display name
   const getUserDisplayName = () => {
     return user?.name || user?.username || 'Admin User';
   };
 
-  // Get user role display
   const getUserRoleDisplay = () => {
-    return role?.name || user?.role_name || 'Admin';
+    return role?.name || user?.role_name || user?.role || 'Guest';
   };
 
-  // Get color classes based on item color
   const getColorClasses = (color, isActive, isHovered) => {
     const colors = {
       blue: {
@@ -949,7 +592,6 @@ const AdminSideNavbarCom = () => {
     return colors[color] || colors.blue;
   };
 
-  // Show loading state if auth is loading
   if (loading) {
     return (
       <div className="fixed top-0 left-0 h-screen w-72 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
@@ -958,7 +600,7 @@ const AdminSideNavbarCom = () => {
     );
   }
 
-  console.log('Render - isAuthenticated:', isAuthenticated); // Debug log
+  console.log('Render - isAuthenticated:', isAuthenticated, 'Filtered Items:', filteredNavigationItems.length);
 
   return (
     <div className="relative h-screen">
@@ -1022,7 +664,8 @@ const AdminSideNavbarCom = () => {
               </div>
             )}
             
-            {navigationItems.map((item) => {
+            {/* Use filtered navigation items */}
+            {filteredNavigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeRoute === item.path;
               const isHovered = hoveredItem === item.id;
@@ -1078,6 +721,13 @@ const AdminSideNavbarCom = () => {
                 </button>
               );
             })}
+
+            {/* Show message if no items available for this role */}
+            {filteredNavigationItems.length === 0 && (
+              <div className="px-4 py-8 text-center">
+                <p className="text-slate-400 text-sm">No menu items available for your role</p>
+              </div>
+            )}
           </nav>
 
           {/* Footer Actions */}
