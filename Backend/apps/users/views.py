@@ -334,6 +334,29 @@ class EmployeeToggleView(APIView):
         send_email.delay(template, [user_instance.email], context)
 
 
+# class PermissionView(BaseView):
+#     permission_classes = (IsAuthenticated,)
+#     serializer_class = PermissionSerializer
+
+#     @permission_required([CREATE_ROLE])
+#     def get(self, request):
+#         try:
+#             permissions = self.serializer_class.Meta.model.objects.all()
+#             serialized_data = PermissionSerializer(permissions, many=True).data
+#             grouped_data = defaultdict(list)
+#             for item in serialized_data:
+#                 module_label = item.get("module_label", "Uncategorized")
+#                 grouped_data[module_label].append(item)
+#             return Response(create_response(SUCCESSFUL, grouped_data, permissions.count()), status=status.HTTP_200_OK)
+
+#         except Exception as e:
+#             print(str(e))
+#             return Response(create_response(str(e)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+from collections import defaultdict
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 class PermissionView(BaseView):
     permission_classes = (IsAuthenticated,)
     serializer_class = PermissionSerializer
@@ -341,13 +364,45 @@ class PermissionView(BaseView):
     @permission_required([CREATE_ROLE])
     def get(self, request):
         try:
+            # Get pagination parameters from request
+            page = int(request.GET.get('page', 1))
+            limit = int(request.GET.get('limit', 10))
+            
+            # Get all permissions
             permissions = self.serializer_class.Meta.model.objects.all()
-            serialized_data = PermissionSerializer(permissions, many=True).data
+            total_count = permissions.count()
+            
+            # Create paginator instance
+            paginator = Paginator(permissions, limit)
+            
+            try:
+                # Get the requested page
+                paginated_permissions = paginator.page(page)
+            except PageNotAnInteger:
+                paginated_permissions = paginator.page(1)
+                page = 1
+            except EmptyPage:
+                paginated_permissions = paginator.page(paginator.num_pages)
+                page = paginator.num_pages
+            
+            # Serialize the paginated data
+            serialized_data = PermissionSerializer(paginated_permissions, many=True).data
+            
+            # Group data by module_label
             grouped_data = defaultdict(list)
             for item in serialized_data:
                 module_label = item.get("module_label", "Uncategorized")
                 grouped_data[module_label].append(item)
-            return Response(create_response(SUCCESSFUL, grouped_data, permissions.count()), status=status.HTTP_200_OK)
+            
+            # Return response with proper pagination metadata
+            return Response({
+                "message": "Successful",
+                "data": grouped_data,
+                "count": total_count,  # Total number of all permissions
+                "page": page,
+                "limit": limit,
+                "total_pages": paginator.num_pages
+            }, status=status.HTTP_200_OK)
 
         except Exception as e:
             print(str(e))
