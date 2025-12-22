@@ -687,109 +687,318 @@ class PublicBlogPostSerializer(serializers.ModelSerializer):
     
 # ======================= COMMENT SERIALIZERS =======================
 
-class CommentListingSerializer(serializers.ModelSerializer):
-    """Minimal serializer for comment listings"""
-    author_name = serializers.SerializerMethodField()
+# class CommentListingSerializer(serializers.ModelSerializer):
+#     """Minimal serializer for comment listings"""
+#     author_name = serializers.SerializerMethodField()
     
-    class Meta:
-        model = Comment
-        fields = ['id', 'content', 'author_name', 'status', 'created_at']
+#     class Meta:
+#         model = Comment
+#         fields = ['id', 'content', 'author_name', 'status', 'created_at']
     
-    def get_author_name(self, obj):
-        if obj.user:
-            return obj.user.get_full_name()
-        return obj.guest_name
+#     def get_author_name(self, obj):
+#         if obj.user:
+#             return obj.user.get_full_name()
+#         return obj.guest_name
+
+
+# class CommentSerializer(serializers.ModelSerializer):
+#     """Full comment serializer with validations"""
+#     replies_count = serializers.SerializerMethodField()
+#     author_name = serializers.SerializerMethodField()
+    
+#     class Meta:
+#         model = Comment
+#         exclude = ['deleted']
+#         read_only_fields = ('created_at', 'updated_at', 'created_by', 'updated_by', 
+#                            'ip_address', 'user_agent')
+    
+#     def get_replies_count(self, obj):
+#         return obj.replies.filter(deleted=False, status=APPROVED).count()
+    
+#     def get_author_name(self, obj):
+#         if obj.user:
+#             return obj.user.get_full_name()
+#         return obj.guest_name
+    
+#     def validate_content(self, value):
+#         """Validate comment content"""
+#         if len(value.strip()) < 3:
+#             raise serializers.ValidationError("Comment must be at least 3 characters long")
+        
+#         if len(value) > 1000:
+#             raise serializers.ValidationError("Comment cannot exceed 1000 characters")
+        
+#         return value.strip()
+    
+#     def validate_post(self, value):
+#         """Validate post allows comments"""
+#         if value and not value.allow_comments:
+#             raise serializers.ValidationError("This post does not allow comments")
+        
+#         if value and value.status != PUBLISHED:
+#             raise serializers.ValidationError("Cannot comment on unpublished posts")
+        
+#         return value
+    
+#     def validate_parent(self, value):
+#         """Validate parent comment"""
+#         if value and value.parent:
+#             raise serializers.ValidationError("Cannot reply to a reply. Only one level of nesting allowed")
+#         return value
+    
+#     def validate(self, attrs):
+#         """Cross-field validation"""
+#         request = self.context.get('request')
+        
+#         # Validate author information
+#         user = attrs.get('user')
+#         guest_name = attrs.get('guest_name')
+#         guest_email = attrs.get('guest_email')
+        
+#         if not user and not guest_name:
+#             raise serializers.ValidationError({
+#                 "guest_name": "Guest name is required for non-authenticated users"
+#             })
+        
+#         if not user and not guest_email:
+#             raise serializers.ValidationError({
+#                 "guest_email": "Guest email is required for non-authenticated users"
+#             })
+        
+#         # Auto-set user if authenticated
+#         if request and request.user.is_authenticated and not user:
+#             attrs['user'] = request.user
+        
+#         # Capture IP and user agent on creation
+#         if not self.instance and request:
+#             attrs['ip_address'] = self.get_client_ip(request)
+#             attrs['user_agent'] = request.META.get('HTTP_USER_AGENT', '')[:255]
+        
+#         return attrs
+    
+#     def get_client_ip(self, request):
+#         """Get client IP address"""
+#         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+#         if x_forwarded_for:
+#             ip = x_forwarded_for.split(',')[0]
+#         else:
+#             ip = request.META.get('REMOTE_ADDR')
+#         return ip
+    
+#     def to_representation(self, instance):
+#         data = super().to_representation(instance)
+#         data['created_by'] = instance.created_by.get_full_name() if instance.created_by else None
+#         data['updated_by'] = instance.updated_by.get_full_name() if instance.updated_by else None
+        
+#         if instance.post:
+#             data['post'] = {
+#                 'id': instance.post.id,
+#                 'title': instance.post.title,
+#                 'slug': instance.post.slug
+#             }
+        
+#         if instance.parent:
+#             data['parent'] = CommentListingSerializer(instance.parent).data
+        
+#         if instance.moderated_by:
+#             data['moderated_by'] = instance.moderated_by.get_full_name()
+        
+#         # Include replies in detailed view
+#         if self.context.get('request') and self.context['request'].query_params.get('id'):
+#             data['replies'] = CommentListingSerializer(
+#                 instance.replies.filter(deleted=False, status=APPROVED), 
+#                 many=True
+#             ).data
+        
+#         return data
+
+
+
+from rest_framework import serializers
+from .models import Comment
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Full comment serializer with validations"""
-    replies_count = serializers.SerializerMethodField()
+    """Main serializer for all comment operations"""
+    
     author_name = serializers.SerializerMethodField()
+    author_email = serializers.SerializerMethodField()
+    reply_count = serializers.SerializerMethodField()
+    is_guest = serializers.SerializerMethodField()
+    replies = serializers.SerializerMethodField()
+    
+    # Permission fields
+    can_edit = serializers.SerializerMethodField()
+    can_delete = serializers.SerializerMethodField()
     
     class Meta:
         model = Comment
-        exclude = ['deleted']
-        read_only_fields = ('created_at', 'updated_at', 'created_by', 'updated_by', 
-                           'ip_address', 'user_agent')
-    
-    def get_replies_count(self, obj):
-        return obj.replies.filter(deleted=False, status=APPROVED).count()
+        exclude = ['deleted', 'deleted_at', 'deleted_by']
+        read_only_fields = [
+            'id',
+            'user',
+            'status',
+            'is_edited',
+            'edited_at',
+            'ip_address',
+            'user_agent',
+            'moderated_by',
+            'moderated_at',
+            'moderation_note',
+            'created_at',
+            'updated_at'
+        ]
+        extra_kwargs = {
+            'guest_name': {'required': False},
+            'guest_email': {'required': False},
+        }
     
     def get_author_name(self, obj):
-        if obj.user:
-            return obj.user.get_full_name()
-        return obj.guest_name
+        return obj.author_name
     
+    def get_author_email(self, obj):
+        # Only show email to staff or comment author
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            if request.user.is_staff or obj.user == request.user:
+                return obj.author_email
+        return None
+    
+    def get_reply_count(self, obj):
+        return obj.replies.approved().count()
+    
+    def get_is_guest(self, obj):
+        return obj.is_guest
+    
+    def get_replies(self, obj):
+        # Only show replies for top-level comments in detail view
+        if obj.is_reply or not self.context.get('show_replies'):
+            return []
+        
+        replies = obj.get_approved_replies()
+        return CommentSerializer(
+            replies,
+            many=True,
+            context={'show_replies': False, 'request': self.context.get('request')}
+        ).data
+    
+    def get_can_edit(self, obj):
+        request = self.context.get('request')
+        return obj.can_edit(request.user) if request else False
+    
+    def get_can_delete(self, obj):
+        request = self.context.get('request')
+        return obj.can_delete(request.user) if request else False
+    
+    # Validations
     def validate_content(self, value):
-        """Validate comment content"""
-        if len(value.strip()) < 3:
-            raise serializers.ValidationError("Comment must be at least 3 characters long")
-        
-        if len(value) > 1000:
-            raise serializers.ValidationError("Comment cannot exceed 1000 characters")
-        
+        if not value or len(value.strip()) < 3:
+            raise serializers.ValidationError(
+                "Comment must be at least 3 characters long"
+            )
         return value.strip()
     
     def validate_post(self, value):
-        """Validate post allows comments"""
         if value and not value.allow_comments:
             raise serializers.ValidationError("This post does not allow comments")
         
-        if value and value.status != PUBLISHED:
+        if value and value.status != 'published':
             raise serializers.ValidationError("Cannot comment on unpublished posts")
         
         return value
     
     def validate_parent(self, value):
-        """Validate parent comment"""
-        if value and value.parent:
-            raise serializers.ValidationError("Cannot reply to a reply. Only one level of nesting allowed")
+        if value:
+            if value.deleted:
+                raise serializers.ValidationError("Cannot reply to deleted comment")
+            
+            if value.parent:
+                raise serializers.ValidationError("Cannot reply to a reply")
+            
+            if value.status != Comment.APPROVED:
+                raise serializers.ValidationError(
+                    "Cannot reply to unapproved comment"
+                )
+        
         return value
     
+    def create(self, validated_data):
+        """
+        Override create to remove fields that don't exist in Comment model
+        Your BaseView may be adding created_by/updated_by automatically
+        """
+        # Remove fields that don't exist in the Comment model
+        validated_data.pop('created_by', None)
+        validated_data.pop('updated_by', None)
+        
+        # Create the comment
+        comment = Comment.objects.create(**validated_data)
+        return comment
+    
     def validate(self, attrs):
-        """Cross-field validation"""
         request = self.context.get('request')
         
-        # Validate author information
-        user = attrs.get('user')
-        guest_name = attrs.get('guest_name')
-        guest_email = attrs.get('guest_email')
+        # For CREATE: Handle user vs guest
+        if not self.instance:
+            if request and request.user.is_authenticated:
+                attrs['user'] = request.user
+                attrs.pop('guest_name', None)
+                attrs.pop('guest_email', None)
+                attrs.pop('guest_website', None)
+            else:
+                if not attrs.get('guest_name') or not attrs.get('guest_email'):
+                    raise serializers.ValidationError(
+                        "Guest name and email are required"
+                    )
+            
+            # Rate limiting
+            if request:
+                ip_address = self._get_client_ip(request)
+                user = request.user if request.user.is_authenticated else None
+                
+                if Comment.check_rate_limit(ip_address=ip_address, user=user):
+                    raise serializers.ValidationError(
+                        "Too many comments. Please wait before commenting again."
+                    )
+                
+                # Capture metadata
+                attrs['ip_address'] = ip_address
+                attrs['user_agent'] = request.META.get('HTTP_USER_AGENT', '')[:500]
+                
+                # Auto-approve staff comments
+                if request.user.is_authenticated and request.user.is_staff:
+                    attrs['status'] = Comment.APPROVED
         
-        if not user and not guest_name:
-            raise serializers.ValidationError({
-                "guest_name": "Guest name is required for non-authenticated users"
-            })
-        
-        if not user and not guest_email:
-            raise serializers.ValidationError({
-                "guest_email": "Guest email is required for non-authenticated users"
-            })
-        
-        # Auto-set user if authenticated
-        if request and request.user.is_authenticated and not user:
-            attrs['user'] = request.user
-        
-        # Capture IP and user agent on creation
-        if not self.instance and request:
-            attrs['ip_address'] = self.get_client_ip(request)
-            attrs['user_agent'] = request.META.get('HTTP_USER_AGENT', '')[:255]
+        # For UPDATE: Check permissions
+        else:
+            if not self.instance.can_edit(request.user if request else None):
+                raise serializers.ValidationError("Cannot edit this comment")
         
         return attrs
     
-    def get_client_ip(self, request):
-        """Get client IP address"""
+    def update(self, instance, validated_data):
+        """
+        Override update to remove fields that don't exist in Comment model
+        """
+        # Remove fields that don't exist in the Comment model
+        validated_data.pop('created_by', None)
+        validated_data.pop('updated_by', None)
+        
+        # Only allow updating content
+        instance.content = validated_data.get('content', instance.content)
+        instance.mark_as_edited()
+        return instance
+    
+    def _get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
+            return x_forwarded_for.split(',')[0].strip()
+        return request.META.get('REMOTE_ADDR')
     
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['created_by'] = instance.created_by.get_full_name() if instance.created_by else None
-        data['updated_by'] = instance.updated_by.get_full_name() if instance.updated_by else None
         
+        # Add nested post info
         if instance.post:
             data['post'] = {
                 'id': instance.post.id,
@@ -797,21 +1006,54 @@ class CommentSerializer(serializers.ModelSerializer):
                 'slug': instance.post.slug
             }
         
+        # Add parent info for replies
         if instance.parent:
-            data['parent'] = CommentListingSerializer(instance.parent).data
+            data['parent_author'] = instance.parent.author_name
         
-        if instance.moderated_by:
-            data['moderated_by'] = instance.moderated_by.get_full_name()
-        
-        # Include replies in detailed view
-        if self.context.get('request') and self.context['request'].query_params.get('id'):
-            data['replies'] = CommentListingSerializer(
-                instance.replies.filter(deleted=False, status=APPROVED), 
-                many=True
-            ).data
+        # Add moderation info for staff
+        request = self.context.get('request')
+        if request and request.user.is_authenticated and request.user.is_staff:
+            if instance.moderated_by:
+                data['moderated_by'] = instance.moderated_by.get_full_name()
         
         return data
 
+
+class CommentListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for listings"""
+    
+    author_name = serializers.CharField(source='author_name', read_only=True)
+    reply_count = serializers.IntegerField(read_only=True)
+    
+    class Meta:
+        model = Comment
+        fields = [
+            'id',
+            'post',
+            'content',
+            'author_name',
+            'status',
+            'is_edited',
+            'reply_count',
+            'created_at',
+            'updated_at'
+        ]
+
+
+class CommentModerationSerializer(serializers.Serializer):
+    """Simple serializer for moderation actions"""
+    
+    action = serializers.ChoiceField(choices=['approve', 'reject', 'spam'])
+    note = serializers.CharField(required=False, max_length=500, allow_blank=True)
+    
+    def validate(self, attrs):
+        request = self.context.get('request')
+        instance = self.context.get('instance')
+        
+        if not instance.can_moderate(request.user if request else None):
+            raise serializers.ValidationError("No permission to moderate")
+        
+        return attrs
 
 # ======================= MEDIA SERIALIZERS =======================
 

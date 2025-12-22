@@ -895,7 +895,7 @@
 'use client';
 import { useState, useEffect, useContext, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, Users, FileText, Settings, LogOut, Lock, Eye, Menu, X, ChevronRight, User, Shield, Zap, Globe, Image, Key } from 'lucide-react';
+import { Home, Users, FileText, Settings, LogOut, Lock, Eye, Menu, X, ChevronRight, User, Shield, Zap, Globe, Image, Key, MessageSquare} from 'lucide-react';
 import { AuthContext } from '@/components/AuthContext';
 
 const AdminSideNavbarCom = () => {
@@ -977,6 +977,14 @@ const AdminSideNavbarCom = () => {
       path: '/PermissionsPage',
       roles: ['admin', 'super'],
       color: 'emerald'
+    },
+    {
+      id: 'comments',
+      label: 'comments',
+      icon: MessageSquare,
+      path: '/comments',
+      roles: ['admin', 'super'],
+      color: 'purple'
     },
     {
       id: 'profile',

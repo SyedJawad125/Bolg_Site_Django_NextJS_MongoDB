@@ -90,19 +90,186 @@ class PublicBlogPostFilter(django_filters.FilterSet):
         model = BlogPost
         fields = []
 
+# class CommentFilter(django_filters.FilterSet):
+#     post_title = CharFilter(field_name='post__title', lookup_expr='icontains')
+#     username = CharFilter(field_name='user__username', lookup_expr='icontains')
+#     guest_name = CharFilter(lookup_expr='icontains')
+#     guest_email = CharFilter(lookup_expr='icontains')
+#     status = ChoiceFilter(choices=Comment.STATUS_CHOICES)
+#     created_after = DateTimeFilter(field_name='created_at', lookup_expr='gte')
+#     created_before = DateTimeFilter(field_name='created_at', lookup_expr='lte')
+
+#     class Meta:
+#         model = Comment
+#         fields = []
+
+
+import django_filters
+from django_filters import (
+    CharFilter,
+    ChoiceFilter,
+    DateTimeFilter,
+    BooleanFilter,
+    ModelChoiceFilter,
+    MultipleChoiceFilter
+)
+from django.db import models
+from .models import Comment
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
 class CommentFilter(django_filters.FilterSet):
+    """
+    Filter for Comment model
+    Works with both authenticated and public views
+    """
+    
+    # Post filters
     post_title = CharFilter(field_name='post__title', lookup_expr='icontains')
+    post_slug = CharFilter(field_name='post__slug', lookup_expr='iexact')
+    
+    # Author filters
+    user = ModelChoiceFilter(queryset=User.objects.all())
     username = CharFilter(field_name='user__username', lookup_expr='icontains')
+    author_name = CharFilter(method='filter_author_name')
+    
+    # Guest filters
     guest_name = CharFilter(lookup_expr='icontains')
-    guest_email = CharFilter(lookup_expr='icontains')
+    guest_email = CharFilter(lookup_expr='iexact')
+    is_guest = BooleanFilter(field_name='user', lookup_expr='isnull')
+    
+    # Content filters
+    content = CharFilter(lookup_expr='icontains')
+    search = CharFilter(method='filter_search')
+    
+    # Status filters
     status = ChoiceFilter(choices=Comment.STATUS_CHOICES)
+    status_in = MultipleChoiceFilter(
+        field_name='status',
+        choices=Comment.STATUS_CHOICES,
+        lookup_expr='in'
+    )
+    
+    # Reply/Parent filters
+    is_reply = BooleanFilter(field_name='parent', lookup_expr='isnull', exclude=True)
+    is_top_level = BooleanFilter(field_name='parent', lookup_expr='isnull')
+    
+    # Edit status
+    is_edited = BooleanFilter()
+    
+    # Date filters
     created_after = DateTimeFilter(field_name='created_at', lookup_expr='gte')
     created_before = DateTimeFilter(field_name='created_at', lookup_expr='lte')
-
+    updated_after = DateTimeFilter(field_name='updated_at', lookup_expr='gte')
+    updated_before = DateTimeFilter(field_name='updated_at', lookup_expr='lte')
+    
+    # Moderation filters (staff only)
+    moderated_by = ModelChoiceFilter(queryset=User.objects.filter(is_staff=True))
+    moderated_after = DateTimeFilter(field_name='moderated_at', lookup_expr='gte')
+    moderated_before = DateTimeFilter(field_name='moderated_at', lookup_expr='lte')
+    
+    # Soft delete (staff only)
+    include_deleted = BooleanFilter(method='filter_include_deleted')
+    
     class Meta:
         model = Comment
         fields = []
+    
+    def filter_author_name(self, queryset, name, value):
+        """Filter by author name (both user full name and guest name)"""
+        return queryset.filter(
+            models.Q(user__first_name__icontains=value) |
+            models.Q(user__last_name__icontains=value) |
+            models.Q(user__username__icontains=value) |
+            models.Q(guest_name__icontains=value)
+        )
+    
+    def filter_search(self, queryset, name, value):
+        """Search across content and author names"""
+        return queryset.filter(
+            models.Q(content__icontains=value) |
+            models.Q(user__username__icontains=value) |
+            models.Q(user__first_name__icontains=value) |
+            models.Q(user__last_name__icontains=value) |
+            models.Q(guest_name__icontains=value)
+        )
+    
+    def filter_include_deleted(self, queryset, name, value):
+        """
+        Include deleted comments (staff only)
+        For public views, always exclude deleted
+        """
+        request = self.request
+        
+        # Check if user is staff
+        if request and request.user.is_authenticated and request.user.is_staff:
+            if value:
+                # Include deleted comments
+                return Comment.all_objects.all()
+        
+        # Always exclude deleted for non-staff
+        return queryset.filter(deleted=False)
+    
+    @property
+    def qs(self):
+        """
+        Override queryset to handle public vs authenticated access
+        """
+        parent = super().qs
+        request = self.request
+        
+        # Always exclude deleted by default (unless staff explicitly includes them)
+        if not (request and request.user.is_authenticated and 
+                request.user.is_staff and 
+                self.data.get('include_deleted') == 'true'):
+            parent = parent.filter(deleted=False)
+        
+        # For unauthenticated requests (public view), show only approved
+        # This is the key change for PublicCommentView
+        if not request or not request.user.is_authenticated:
+            parent = parent.filter(status=Comment.APPROVED)
+        
+        return parent
 
+
+class PublicCommentFilter(django_filters.FilterSet):
+    """
+    Simplified filter for public comment views
+    Only shows approved, non-deleted comments
+    Fewer filter options for security
+    """
+    
+    # Post filters
+    post_slug = CharFilter(field_name='post__slug', lookup_expr='iexact')
+    
+    # Content search
+    search = CharFilter(method='filter_search')
+    
+    # Reply filters
+    is_top_level = BooleanFilter(field_name='parent', lookup_expr='isnull')
+    
+    # Date filters
+    created_after = DateTimeFilter(field_name='created_at', lookup_expr='gte')
+    created_before = DateTimeFilter(field_name='created_at', lookup_expr='lte')
+    
+    class Meta:
+        model = Comment
+        fields = []
+    
+    def filter_search(self, queryset, name, value):
+        """Search across content only (for security)"""
+        return queryset.filter(content__icontains=value)
+    
+    @property
+    def qs(self):
+        """Always return only approved, non-deleted comments"""
+        parent = super().qs
+        return parent.filter(
+            status=Comment.APPROVED,
+            deleted=False
+        )
 
 class MediaFilter(django_filters.FilterSet):
     title = CharFilter(lookup_expr='icontains')
