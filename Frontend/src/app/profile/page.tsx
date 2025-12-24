@@ -1,7 +1,7 @@
 'use client'
 import React from 'react'
 import AdminSideNavbarCom from "@/components/AdminSideNavbarCom";
-import ClientSelfPage from "@/components/ClientSelfPage";
+import ProfileCom from "@/components/ProfileCom";
 
 const AdminDashboard = () => {
   return (
@@ -14,7 +14,7 @@ const AdminDashboard = () => {
       {/* Main Content - Takes remaining space */}
       <div className="flex-1 w-[82%] bg-black overflow-auto ml-4 mr" >
         <div className="w-full h-full p-6">
-          <ClientSelfPage />
+          <ProfileCom />
         </div>
       </div>
     </div>

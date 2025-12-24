@@ -321,7 +321,7 @@ const Login = () => {
       // Clear the URL parameter after showing the message
       setTimeout(() => {
         setSuccess('');
-        router.replace('/Login');
+        router.replace('/login');
       }, 5000);
     }
   }, [searchParams, router]);

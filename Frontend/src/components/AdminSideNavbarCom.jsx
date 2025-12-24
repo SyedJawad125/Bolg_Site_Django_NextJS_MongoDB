@@ -988,9 +988,9 @@ const AdminSideNavbarCom = () => {
     },
     {
       id: 'profile',
-      label: 'Client Profile',
+      label: 'Profile',
       icon: User,
-      path: '/clientselfpage',
+      path: '/profile',
       roles: ['admin', 'editor', 'client', 'guest', 'super'],
       color: 'amber'
     },
@@ -1042,7 +1042,7 @@ const AdminSideNavbarCom = () => {
     // Clear scroll position on logout
     sessionStorage.removeItem('sidebarScrollPosition');
     await logout();
-    router.push('/Login');
+    router.push('/login');
   };
 
   const handleChangePassword = () => {
@@ -1337,7 +1337,7 @@ const AdminSideNavbarCom = () => {
               </button>
             ) : (
               <button
-                onClick={() => router.push('/Login')}
+                onClick={() => router.push('/login')}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-200 group hover:scale-[1.02] ${
                   isCollapsed ? 'justify-center' : ''
                 }`}
